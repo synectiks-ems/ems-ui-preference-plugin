@@ -440,7 +440,8 @@ class AcademicSettings extends React.Component<AcademicSettingsProps, any> {
                                 {
                                     activeTab === 1 ?
                                         ayList !== null && holidayList !== null ?
-                                            <Holiday holidayList={holidayList.getHolidayList} ayList={ayList}></Holiday>
+                                        // <Holiday holidayList={holidayList.getHolidayList} ayList={ayList}></Holiday>
+                                        <Holiday  ayList={ayList}></Holiday>
                                         :
                                         null
                                     : null
@@ -467,7 +468,9 @@ class AcademicSettings extends React.Component<AcademicSettingsProps, any> {
                                     activeTab === 2 ?
                                         ayList !== null && termList !== null ?
                                             <Term termList={termList.getTermList} ayList={ayList}></Term>
-                                        :
+                                        // <Term  ayList={ayList}></Term>
+
+                                            :
                                         null
                                     :null
                                 }

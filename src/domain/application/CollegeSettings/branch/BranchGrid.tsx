@@ -5,6 +5,12 @@ import  "../../../../css/custom.css";
 import {MessageBox} from '../../Message/MessageBox'
 import { withApollo } from 'react-apollo';
 import { GET_BRANCH_LIST, SAVE_BRANCH } from '../../_queries';
+import Table from '../../../../css/table';
+
+const w140 = {
+    width: '140px',
+    marginBottom: '5px',
+};
 
 export interface BranchProps extends React.HTMLAttributes<HTMLElement>{
     [data: string]: any;
@@ -47,7 +53,54 @@ class BranchGrid<T = {[data: string]: any}> extends React.Component<BranchProps,
             stateList: this.props.stateList,
             cityList: this.props.cityList,
             originalCityList: this.props.cityList,
-            modelHeader: ""
+            modelHeader: "",
+            columns: [
+                {
+                    label: "Id",
+                    key: 'id',
+                    isCaseInsensitive: true,
+                },
+                {
+                    label: "branchName",
+                    key: 'branchName',
+                    isCaseInsensitive: false,
+                },
+                {
+                    label: "address",
+                    key: 'address',
+                    isCaseInsensitive: false,
+                },
+                {
+                    label: "pinCode",
+                    key: 'pinCode',
+                    isCaseInsensitive: false,
+                  },
+                  {
+                    label: "branchHead",
+                    key: 'branchHead',
+                    isCaseInsensitive: false,
+                  },
+                  {
+                    label: "status",
+                    key: 'status',
+                    isCaseInsensitive: false,
+                  },
+                  {
+                    label: 'Action',
+                    key: 'action',
+                    renderCallback: (value: any, alert: any) => {
+                      return <td>
+                        <div className="d-inline-block">
+                          <button className="btn btn-primary" onClick={e => this.showDetail(e, true, alert, "Edit Branch")}>
+                            {/* <i onClick={e => this.showDetail(e,true,alert, "Edit Branch")} className="fa fa-edit"></i> */}
+                                          Edit
+                                        </button>
+                        </div>
+                      </td>
+                    },
+                    isCaseInsensitive: true
+                  }
+            ],
         };
         
     }
@@ -66,35 +119,35 @@ class BranchGrid<T = {[data: string]: any}> extends React.Component<BranchProps,
         }));
     }
 
-    createRows(objAry: any) {
-        const { source } = this.state;
-        console.log("createRows() - Branch list on BranchGrid page:  ", objAry);
-        if(objAry === undefined || objAry === null) {
-            return;
-        }
-        const mutateResLength = objAry.length;
-        const retVal = [];
-        for (let i = 0; i < mutateResLength; i++) {
-            const branchObj = objAry[i];
-            retVal.push(
-              <tr >
-                <td>{branchObj.id}</td>
-                <td>{branchObj.branchName}</td>
-                <td>{branchObj.address}</td>
-                <td>{branchObj.pinCode}</td>
-                <td>{branchObj.branchHead}</td>
-                <td>{branchObj.isMainBranch}</td>
-                <td>{branchObj.status}</td>
-                <td>
-                    {
-                        <button className="btn btn-primary" onClick={e => this.showDetail(e, true, branchObj, "Edit Branch")}>Edit</button>
-                    }
-                </td>
-              </tr>
-            );
-        }
-        return retVal;
-    }
+    // createRows(objAry: any) {
+    //     const { source } = this.state;
+    //     console.log("createRows() - Branch list on BranchGrid page:  ", objAry);
+    //     if(objAry === undefined || objAry === null) {
+    //         return;
+    //     }
+    //     const mutateResLength = objAry.length;
+    //     const retVal = [];
+    //     for (let i = 0; i < mutateResLength; i++) {
+    //         const branchObj = objAry[i];
+    //         retVal.push(
+    //           <tr >
+    //             <td>{branchObj.id}</td>
+    //             <td>{branchObj.branchName}</td>
+    //             <td>{branchObj.address}</td>
+    //             <td>{branchObj.pinCode}</td>
+    //             <td>{branchObj.branchHead}</td>
+    //             <td>{branchObj.isMainBranch}</td>
+    //             <td>{branchObj.status}</td>
+    //             <td>
+    //                 {
+    //                     <button className="btn btn-primary" onClick={e => this.showDetail(e, true, branchObj, "Edit Branch")}>Edit</button>
+    //                 }
+    //             </td>
+    //           </tr>
+    //         );
+    //     }
+    //     return retVal;
+    // }
     showModal(e: any, bShow: boolean, headerLabel: any) {
         e && e.preventDefault();
         this.setState(() => ({
@@ -293,11 +346,33 @@ class BranchGrid<T = {[data: string]: any}> extends React.Component<BranchProps,
         // this.getBranchList();
         
     }
+    async componentDidMount() {
+        await this.getBranch();
+      }
+      getBranch = async () => {
+        const { data } = await this.props.client.query({
+          query: GET_BRANCH_LIST,
+          fetchPolicy: 'no-cache',
+        }).then((res: any) => {
+          const data=res.data;
+          console.log("Branch data :::", data.getBranchList);
+          
+    
+          this.setState({
+            // stateList: data.getBranchList,
+            // cityList: data.getBranchList,
+          });
+    
+          console.log(" state variable Branch data :::", this.state.stateList);
+          console.log(" state variable Branch data :::", this.state.cityList);
 
+        });
+    }
     render() {
         const {list, isModalOpen, branchObj, stateList, cityList, modelHeader, errorMessage, successMessage} = this.state;
         return (
-            <main>
+            // <main>
+            <section className="customCss">
                 <Modal isOpen={isModalOpen} className="react-strap-modal-container">
                     <ModalHeader>{modelHeader}</ModalHeader>
                     <ModalBody className="modal-content">
@@ -382,7 +457,7 @@ class BranchGrid<T = {[data: string]: any}> extends React.Component<BranchProps,
                 <button className="btn btn-primary" style={{width:'150px'}} onClick={e => this.showModal(e, true, "Add New Branch")}>
                     <i className="fa fa-plus-circle"></i> Add new Branch
                 </button>
-                {
+                {/* {
                     list !== null && list !== undefined && list.length > 0 ?
                         <div style={{width:'100%', height:'250px', overflow:'auto'}}>
                             <table id="branchTable" className="striped-table fwidth bg-white p-2 m-t-1">
@@ -404,9 +479,12 @@ class BranchGrid<T = {[data: string]: any}> extends React.Component<BranchProps,
                             </table>
                         </div>
                     : null
-                }
+                } */}
                 
-            </main>
+            {/* </main> */}
+            <Table valueFromData={{ columns: this.state.columns, data: list }} perPageLimit={6} visiblecheckboxStatus={true} tableClasses={{ table: "alert-data-tabel", tableParent: "alerts-data-tabel", parentClass: "all-alert-data-table" }} searchKey="name" showingLine="Showing %start% to %end% of %total%" />
+
+            </section>
         );
     }
 }

@@ -4,36 +4,59 @@ import { commonFunctions } from '../../_utilites/common.functions';
 import  "../../../../css/custom.css";
 import {MessageBox} from '../../Message/MessageBox'
 import { withApollo } from 'react-apollo';
-import { SAVE_TERM } from '../../_queries';
+import { SAVE_TERM, GET_TERM_LIST } from '../../_queries';
 import * as moment from 'moment';
 import wsCmsBackendServiceSingletonClient from '../../../../wsCmsBackendServiceClient';
+import Table from '../../../../css/table';
 
 export interface TermProps extends React.HTMLAttributes<HTMLElement>{
-    [data: string]: any;
-    termList?: any;  
-    ayList?: any;
+  [data: string]: any;
+  termList?: any;  
+  ayList?: any;
 }
+const w140 = {
+    width: '140px',
+    marginBottom: '5px',
+};
 
 const ERROR_MESSAGE_MANDATORY_FIELD_MISSING = "Mandatory fields missing";
 const ERROR_MESSAGE_SERVER_SIDE_ERROR = "Due to some error in preferences service, term could not be saved. Please check preferences service logs";
 const SUCCESS_MESSAGE_TERM_ADDED = "New term saved successfully";
 const SUCCESS_MESSAGE_TERM_UPDATED = "Term updated successfully";
 const ERROR_MESSAGE_DATES_OVERLAP = "End date cannot be prior or same as start date";
+class TermObj {
+    id: any;
+    description: any;
+    strStartDate: any;
+    strEndDate: any;
+    comments: any;
+    academicYearDescription: any;
+    status: any;
 
+    constructor(id: any, description: any, strStartDate: any, strEndDate: any, comments: any, academicYearDescription: any, status: any) {
+        this.id = id;
+        this.description = description;
+        this.strStartDate = strStartDate;
+        this.strEndDate = strEndDate;
+        this.comments = comments;
+        this.academicYearDescription = academicYearDescription;
+        this.status = status;
+    }
+}
 class Term<T = {[data: string]: any}> extends React.Component<TermProps, any> {
     constructor(props: TermProps) {
         super(props);
         this.state = {
-            termList: this.props.termList,
+            termList: [],
             ayList: this.props.ayList,
             isModalOpen: false,
             termObj: {
                 description: "",
-                startDate: "",
-                endDate: "",
+                strStartDate: "",
+                strEndDate: "",
                 comments: "",
                 status: "",
-                academicYearId:""
+                academicYearId: "",
             },
             errorMessage: "",
             successMessage: "",
@@ -41,240 +64,304 @@ class Term<T = {[data: string]: any}> extends React.Component<TermProps, any> {
             branchId: null,
             academicYearId: null,
             departmentId: null,
+            columns: [
+                {
+                    label: "Id",
+                    key: 'id',
+                    isCaseInsensitive: true,
+                },
+                {
+                    label: "Description",
+                    key: 'description',
+                    isCaseInsensitive: false,
+                },
+                {
+                    label: "start Date",
+                    key: 'strStartDate',
+                    isCaseInsensitive: false,
+                },
+                {
+                    label: "End Date",
+                    key: 'strEndDate',
+                    isCaseInsensitive: false,
+                },
+                {
+                    label: "comments",
+                    key: 'comments',
+                    isCaseInsensitive: false,
+                },
+                {
+                    label: "Academic Year",
+                    key: 'academicYearDescription',
+                    isCaseInsensitive: false,
+                },
+                {
+                    label: "status",
+                    key: 'status',
+                    isCaseInsensitive: false,
+                },
+                {
+                  label: 'Action',
+                  key: 'action',
+                  renderCallback: (value: any, alert: any) => {
+                    return <td>
+                      <div className="d-inline-block">
+                        <button className="btn btn-primary" onClick={e => this.showDetail(e, true, alert, "Edit Term")}>
+                          {/* <i onClick={e => this.showDetail(e,true,alert, "Edit Branch")} className="fa fa-edit"></i> */}
+                                        Edit
+                                      </button>
+                      </div>
+                    </td>
+                  },
+                  isCaseInsensitive: true
+                }
+            ],
+            // termList: [],
+            // ayList: [],      
         };
         this.registerSocket = this.registerSocket.bind(this);
         this.showDetail = this.showDetail.bind(this);
-        this.createRows = this.createRows.bind(this);
+        // this.createRows = this.createRows.bind(this);
         this.doSave = this.doSave.bind(this);
         this.showModal = this.showModal.bind(this);
         this.onChange = this.onChange.bind(this);
         this.validateDates = this.validateDates.bind(this);
         this.validateFields = this.validateFields.bind(this);
     }
+  //   async componentDidMount(){
+  //     await this.registerSocket();
+  // }
+  registerSocket() {
+      const socket = wsCmsBackendServiceSingletonClient.getInstance();
+  
+      socket.onmessage = (response: any) => {
+          let message = JSON.parse(response.data);
+          console.log("Term page. message received from server ::: ", message);
+          this.setState({
+              branchId: message.selectedBranchId,
+              academicYearId: message.selectedAcademicYearId,
+              departmentId: message.selectedDepartmentId,
+          });
+          console.log("Term page. branchId: ",this.state.branchId);
+          console.log("Term page. ayId: ",this.state.academicYearId);  
+          console.log("Term page. departmentId: ",this.state.departmentId);  
+      }
+  
+      socket.onopen = () => {
+          console.log("Term page. Opening websocekt connection to cmsbackend. User : ",new URLSearchParams(location.search).get("signedInUser"));
+          socket.send(new URLSearchParams(location.search).get("signedInUser"));
+      }
+  
+      window.onbeforeunload = () => {
+          console.log("Term page. Closing websocket connection with cms backend service");
+      }
+  }
+
+  showDetail(e: any, bShow: boolean, editObj: any, modelHeader: any) {
+      e && e.preventDefault();
+      const { termObj } = this.state;
+      termObj.id = editObj.id;
+      termObj.startDate = moment(editObj.strStartDate,"DD-MM-YYYY").format("YYYY-MM-DD");
+      termObj.endDate = moment(editObj.strEndDate,"DD-MM-YYYY").format("YYYY-MM-DD");
+      termObj.description = editObj.description;
+      termObj.comments = editObj.comments;
+      termObj.status = editObj.status;
+      termObj.academicYearId = editObj.academicYearId;
+      this.setState(() => ({
+          isModalOpen: bShow,
+          termObj: termObj,
+          modelHeader: modelHeader,
+          errorMessage: "",
+          successMessage: "",
+      }));
+  }
+  showModal(e: any, bShow: boolean, headerLabel: any) {
+    e && e.preventDefault();
+    this.setState(() => ({
+        isModalOpen: bShow,
+        termObj: {},
+        modelHeader: headerLabel,
+        errorMessage: "",
+        successMessage: "",
+    }));
+}
+
+onChange = (e: any) => {
+    e.preventDefault();
+    const { name, value } = e.nativeEvent.target;
+    const { termObj } = this.state;
     
-    async componentDidMount(){
-        await this.registerSocket();
-    }
-    registerSocket() {
-        const socket = wsCmsBackendServiceSingletonClient.getInstance();
+    this.setState({
+        termObj: {
+            ...termObj,
+            [name]: value
+        },
+        errorMessage: "",
+        successMessage: "",
+    });
     
-        socket.onmessage = (response: any) => {
-            let message = JSON.parse(response.data);
-            console.log("Term page. message received from server ::: ", message);
-            this.setState({
-                branchId: message.selectedBranchId,
-                academicYearId: message.selectedAcademicYearId,
-                departmentId: message.selectedDepartmentId,
-            });
-            console.log("Term page. branchId: ",this.state.branchId);
-            console.log("Term page. ayId: ",this.state.academicYearId);  
-            console.log("Term page. departmentId: ",this.state.departmentId);  
+    commonFunctions.restoreTextBoxBorderToNormal(name);
+}
+
+
+validateFields(obj: any){
+    let isValid = true;
+    let errorMessage = ""
+    if(obj.academicYearId === undefined || obj.academicYearId === null || obj.academicYearId === ""){
+        commonFunctions.changeTextBoxBorderToError((obj.academicYearId === undefined || obj.academicYearId === null) ? "" : obj.academicYearId, "academicYearId");
+        errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
+        isValid = false;
+    }
+    if(obj.description === undefined || obj.description === null || obj.description === ""){
+        commonFunctions.changeTextBoxBorderToError((obj.description === undefined || obj.description === null) ? "" : obj.description, "description");
+        errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
+        isValid = false;
+    }
+    if(obj.startDate === undefined || obj.startDate === null || obj.startDate === ""){
+        commonFunctions.changeTextBoxBorderToError((obj.startDate === undefined || obj.startDate === null) ? "" : obj.startDate, "startDate");
+        errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
+        isValid = false;
+    }
+    if(obj.endDate === undefined || obj.endDate === null || obj.endDate === ""){
+        commonFunctions.changeTextBoxBorderToError((obj.endDate === undefined || obj.endDate === null) ? "" : obj.endDate, "endDate");
+        errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
+        isValid = false;
+    }
+    if(obj.status === undefined || obj.status === null || obj.status === ""){
+        commonFunctions.changeTextBoxBorderToError((obj.status === undefined || obj.status === null) ? "" : obj.status, "status");
+        errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
+        isValid = false;
+    }
+
+    if(isValid){
+        isValid = this.validateDates(obj.startDate, obj.endDate);
+        if(isValid === false){
+            errorMessage = ERROR_MESSAGE_DATES_OVERLAP;
         }
+     }
     
-        socket.onopen = () => {
-            console.log("Term page. Opening websocekt connection to cmsbackend. User : ",new URLSearchParams(location.search).get("signedInUser"));
-            socket.send(new URLSearchParams(location.search).get("signedInUser"));
-        }
+
+    this.setState({
+        errorMessage: errorMessage
+    });
+    return isValid; 
+
+}
+
+validateDates(startDate: any, endDate: any){
+    let stDate = moment(startDate, "YYYY-MM-DD");
+    let enDate = moment(endDate, "YYYY-MM-DD");
+    if (enDate.isSameOrBefore(stDate) || stDate.isSameOrAfter(enDate)) {
+        return false;
+    }
+    return true;
+}
+getTermInput(termObj: any, modelHeader: any){
+    let id = null;
+    if(modelHeader === "Edit Term"){
+        id = termObj.id;
+    }
+    let input = {
+        id: id,
+        description: termObj.description,
+        strStartDate: moment(termObj.startDate).format("DD-MM-YYYY"),
+        strEndDate: moment(termObj.endDate).format("DD-MM-YYYY"),
+        comments: termObj.comments,
+        status: termObj.status,
+        academicYearId: termObj.academicYearId
+    };
+    return input;
+}
+
+async doSave(termInput: any, id: any){
+    let btn = document.querySelector("#"+id);
+    btn && btn.setAttribute("disabled", "true");
+    let exitCode = 0;
     
-        window.onbeforeunload = () => {
-            console.log("Term page. Closing websocket connection with cms backend service");
-        }
-    }
-
-    showDetail(e: any, bShow: boolean, editObj: any, modelHeader: any) {
-        e && e.preventDefault();
-        const { termObj } = this.state;
-        termObj.id = editObj.id;
-        termObj.startDate = moment(editObj.strStartDate,"DD-MM-YYYY").format("YYYY-MM-DD");
-        termObj.endDate = moment(editObj.strEndDate,"DD-MM-YYYY").format("YYYY-MM-DD");
-        termObj.description = editObj.description;
-        termObj.comments = editObj.comments;
-        termObj.status = editObj.status;
-        termObj.academicYearId = editObj.academicYearId;
-        this.setState(() => ({
-            isModalOpen: bShow,
-            termObj: termObj,
-            modelHeader: modelHeader,
-            errorMessage: "",
-            successMessage: "",
-        }));
-    }
-
-    createRows(objAry: any) {
-        const { academicYearId } = this.state;
-        console.log("createRows() - term list on term page:  ", objAry);
-        if(objAry === undefined || objAry === null) {
-            return;
-        }
-        const aryLength = objAry.length;
-        const retVal = [];
-        if(academicYearId !== null && academicYearId !== undefined){
-            for (let i = 0; i < aryLength; i++) {
-                const obj = objAry[i];
-                if(parseInt(obj.cmsAcademicYearVo.id,10) === parseInt(academicYearId,10)){
-                    retVal.push(
-                        <tr >
-                          <td>{obj.id}</td>
-                          <td>{obj.description}</td>
-                          <td>{obj.strStartDate}</td>
-                          <td>{obj.strEndDate}</td>
-                          <td>{obj.comments}</td>
-                          <td>{obj.cmsAcademicYearVo.description}</td>
-                          <td>{obj.status}</td>
-                          <td>
-                              {
-                                  <button className="btn btn-primary" onClick={e => this.showDetail(e, true, obj, "Edit Term")}>Edit</button>
-                              }
-                          </td>
-                        </tr>
-                      );
-                }
-                
-            }
-        }
-        
-        return retVal;
-    }
-
-    showModal(e: any, bShow: boolean, headerLabel: any) {
-        e && e.preventDefault();
-        this.setState(() => ({
-            isModalOpen: bShow,
-            termObj: {},
-            modelHeader: headerLabel,
-            errorMessage: "",
-            successMessage: "",
-        }));
-    }
-
-    onChange = (e: any) => {
-        e.preventDefault();
-        const { name, value } = e.nativeEvent.target;
-        const { termObj } = this.state;
-        
-        this.setState({
-            termObj: {
-                ...termObj,
-                [name]: value
-            },
-            errorMessage: "",
-            successMessage: "",
-        });
-        
-        commonFunctions.restoreTextBoxBorderToNormal(name);
-    }
-
-    
-    validateFields(obj: any){
-        let isValid = true;
-        let errorMessage = ""
-        if(obj.academicYearId === undefined || obj.academicYearId === null || obj.academicYearId === ""){
-            commonFunctions.changeTextBoxBorderToError((obj.academicYearId === undefined || obj.academicYearId === null) ? "" : obj.academicYearId, "academicYearId");
-            errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
-            isValid = false;
-        }
-        if(obj.description === undefined || obj.description === null || obj.description === ""){
-            commonFunctions.changeTextBoxBorderToError((obj.description === undefined || obj.description === null) ? "" : obj.description, "description");
-            errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
-            isValid = false;
-        }
-        if(obj.startDate === undefined || obj.startDate === null || obj.startDate === ""){
-            commonFunctions.changeTextBoxBorderToError((obj.startDate === undefined || obj.startDate === null) ? "" : obj.startDate, "startDate");
-            errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
-            isValid = false;
-        }
-        if(obj.endDate === undefined || obj.endDate === null || obj.endDate === ""){
-            commonFunctions.changeTextBoxBorderToError((obj.endDate === undefined || obj.endDate === null) ? "" : obj.endDate, "endDate");
-            errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
-            isValid = false;
-        }
-        if(obj.status === undefined || obj.status === null || obj.status === ""){
-            commonFunctions.changeTextBoxBorderToError((obj.status === undefined || obj.status === null) ? "" : obj.status, "status");
-            errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
-            isValid = false;
-        }
-
-        if(isValid){
-            isValid = this.validateDates(obj.startDate, obj.endDate);
-            if(isValid === false){
-                errorMessage = ERROR_MESSAGE_DATES_OVERLAP;
-            }
-         }
-        
-
-        this.setState({
-            errorMessage: errorMessage
-        });
-        return isValid; 
-
-    }
-
-    validateDates(startDate: any, endDate: any){
-        let stDate = moment(startDate, "YYYY-MM-DD");
-        let enDate = moment(endDate, "YYYY-MM-DD");
-        if (enDate.isSameOrBefore(stDate) || stDate.isSameOrAfter(enDate)) {
-            return false;
-        }
-        return true;
-    }
-    getTermInput(termObj: any, modelHeader: any){
-        let id = null;
-        if(modelHeader === "Edit Term"){
-            id = termObj.id;
-        }
-        let input = {
-            id: id,
-            description: termObj.description,
-            strStartDate: moment(termObj.startDate).format("DD-MM-YYYY"),
-            strEndDate: moment(termObj.endDate).format("DD-MM-YYYY"),
-            comments: termObj.comments,
-            status: termObj.status,
-            academicYearId: termObj.academicYearId
-        };
-        return input;
-    }
-    
-    async doSave(termInput: any, id: any){
-        let btn = document.querySelector("#"+id);
-        btn && btn.setAttribute("disabled", "true");
-        let exitCode = 0;
-        
-        await this.props.client.mutate({
-            mutation: SAVE_TERM,
-            variables: { 
-                input: termInput
-            },
-        }).then((resp: any) => {
-            console.log("Success in saveTerm Mutation. Exit code : ",resp.data.saveTerm.cmsTermVo.exitCode);
-            exitCode = resp.data.saveTerm.cmsTermVo.exitCode;
-            let temp = resp.data.saveTerm.cmsTermVo.dataList; 
-            console.log("New term list : ", temp);
-            this.setState({
-                termList: temp
-            });
-        }).catch((error: any) => {
-            exitCode = 1;
-            console.log('Error in saveTerm : ', error);
-        });
-        btn && btn.removeAttribute("disabled");
-        
-        let errorMessage = "";
-        let successMessage = "";
-        if(exitCode === 0 ){
-            successMessage = SUCCESS_MESSAGE_TERM_ADDED;
-            if(termInput.id !== null){
-                successMessage = SUCCESS_MESSAGE_TERM_UPDATED;
-            }
-        }else {
-            errorMessage = ERROR_MESSAGE_SERVER_SIDE_ERROR;
+    await this.props.client.mutate({
+        mutation: SAVE_TERM,
+        variables: { 
+            input: termInput
+        },
+    }).then((resp: any) => {
+        console.log("Success in saveTerm Mutation. Exit code : ",resp.data.saveTerm.cmsTermVo.exitCode);
+        exitCode = resp.data.saveTerm.cmsTermVo.exitCode;
+        let temp = resp.data.saveTerm.cmsTermVo.dataList; 
+        console.log("New term list : ", temp);
+        let i;
+        let obj;
+        let ary = [];
+        for (i in temp) {
+            obj = new TermObj(temp[i].id, temp[i].description, temp[i].strStartDate, temp[i].strEndDate, temp[i].comments, temp[i].cmsAcademicYearVo.description, temp[i].status);
+  
+          ary.push(obj);
         }
         this.setState({
-            successMessage: successMessage,
-            errorMessage: errorMessage
+            termList: ary
         });
+    }).catch((error: any) => {
+        exitCode = 1;
+        console.log('Error in saveTerm : ', error);
+    });
+    btn && btn.removeAttribute("disabled");
+    
+    let errorMessage = "";
+    let successMessage = "";
+    if(exitCode === 0 ){
+        successMessage = SUCCESS_MESSAGE_TERM_ADDED;
+        if(termInput.id !== null){
+            successMessage = SUCCESS_MESSAGE_TERM_UPDATED;
+        }
+    }else {
+        errorMessage = ERROR_MESSAGE_SERVER_SIDE_ERROR;
+    }
+    this.setState({
+        successMessage: successMessage,
+        errorMessage: errorMessage
+    });
+}
+async getTermList (){
+    console.log("Refreshing term list");
+    const { data } =  await this.props.client.query({
+      query: GET_TERM_LIST,
+      fetchPolicy: 'no-cache'
+    })
+    const temp = data.getTermList;
+    console.log("Data : ", temp)
+    this.setState({
+      list: temp
+    });
     }
 
-    saveTerm = (e: any) => {
+    async componentDidMount() {
+        await this.getTerm();
+      }
+      getTerm = async () => {
+        const { data } = await this.props.client.query({
+          query: GET_TERM_LIST,
+          fetchPolicy: 'no-cache',
+        })
+        var arr = data.getTermList;
+        let i;
+        let finalAry = [];
+        for (i in arr) {
+            let obj = new TermObj(arr[i].id, arr[i].description, arr[i].strStartDate, arr[i].strEndDate, arr[i].comments, arr[i].cmsAcademicYearVo.description, arr[i].status);
+            finalAry.push(obj);
+        }
+        console.log("Final Array : ", finalAry);
+        // .then((res: any) => {
+        //   const data=res.data;
+        //   console.log("Term data :::", data.getTermList);
+    
+          this.setState({
+              termList: finalAry,
+            // academicYearList: data.getAcademicYearList,
+          });
+    
+          console.log(" state variable Term data :::", this.state.termList);
+      }
+
+ saveTerm = (e: any) => {
         const { id } = e.nativeEvent.target;
         const {termObj, modelHeader} = this.state;
         let isValid = this.validateFields(termObj);
@@ -284,11 +371,11 @@ class Term<T = {[data: string]: any}> extends React.Component<TermProps, any> {
         const termInput = this.getTermInput(termObj, modelHeader);
         this.doSave(termInput, id);
     }
-
-    render() {
-        const {termList, ayList, isModalOpen, termObj, modelHeader, errorMessage, successMessage} = this.state;
+      render() {
+        const { termList, ayList, isModalOpen, termObj, modelHeader, errorMessage, successMessage, columns,academicYearList } = this.state;
         return (
-            <main>
+    
+          <section className="customCss">
                 <Modal isOpen={isModalOpen} className="react-strap-modal-container">
                     <ModalHeader>{modelHeader}</ModalHeader>
                     <ModalBody className="modal-content">
@@ -363,33 +450,11 @@ class Term<T = {[data: string]: any}> extends React.Component<TermProps, any> {
                 <button className="btn btn-primary" style={{width:'200px'}} onClick={e => this.showModal(e, true, "Add New Term")}>
                     <i className="fa fa-plus-circle"></i> Add New Term
                 </button>
-                {
-                    termList !== null && termList !== undefined && termList.length > 0 ?
-                        <div style={{width:'100%', height:'250px', overflow:'auto'}}>
-                            <table id="ayTable" className="striped-table fwidth bg-white p-2 m-t-1">
-                                <thead>
-                                    <tr>
-                                        <th>Id</th>
-                                        <th>Description</th>
-                                        <th>Start Date</th>
-                                        <th>End Date</th>
-                                        <th>Comments</th>
-                                        <th>Academic Year</th>
-                                        <th>Status</th>
-                                        <th>Edit</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    { this.createRows(termList) }
-                                </tbody>
-                            </table>
-                        </div>
-                    : null
-                }
-                
-            </main>
-        );
-    }
-}
 
+            <Table valueFromData={{ columns: this.state.columns, data: termList }} perPageLimit={6} visiblecheckboxStatus={true} tableClasses={{ table: "alert-data-tabel", tableParent: "alerts-data-tabel", parentClass: "all-alert-data-table" }} searchKey="name" showingLine="Showing %start% to %end% of %total%" />
+    
+          </section>
+        );
+      }
+    }
 export default withApollo(Term);

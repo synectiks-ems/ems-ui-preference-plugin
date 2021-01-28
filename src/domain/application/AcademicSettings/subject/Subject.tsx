@@ -5,8 +5,13 @@ import wsCmsBackendServiceSingletonClient from '../../../../wsCmsBackendServiceC
 import  "../../../../css/custom.css";
 import {MessageBox} from '../../Message/MessageBox'
 import { withApollo } from 'react-apollo';
-import { SAVE_SUBJECT } from '../../_queries';
+import { SAVE_SUBJECT,GET_SUBJECT_LIST } from '../../_queries';
+import Table from '../../../../css/table';
 
+const w140 = {
+    width: '140px',
+    marginBottom: '5px',
+};
 
 export interface SubjectProps extends React.HTMLAttributes<HTMLElement>{
     [data: string]: any;
@@ -49,18 +54,80 @@ class Subject<T = {[data: string]: any}> extends React.Component<SubjectProps, a
             successMessage: "",
             modelHeader: "",
             assignModelHeader: "",
+            columns: [
+                {
+                    label: "Id",
+                    key: 'id',
+                    isCaseInsensitive: true,
+                },
+                {
+                    label: "Subject Code",
+                    key: 'subjectCode',
+                    isCaseInsensitive: false,
+                },
+                {
+                    label: "Subject Type",
+                    key: 'subjectType',
+                    isCaseInsensitive: false,
+                },
+                {
+                    label: "Description",
+                    key: 'subjectDesc',
+                    isCaseInsensitive: false,
+                },
+                {
+                    label: "Department",
+                    key: 'departmentId',
+                    isCaseInsensitive: false,
+                },
+                {
+                    label: "Year",
+                    key: 'batchId',
+                    isCaseInsensitive: false,
+                },
+                {
+                    label: "Section",
+                    key: 'sectionId',
+                    isCaseInsensitive: false,
+                },
+                {
+                    label: "Teacher",
+                    key: 'teacherId',
+                    isCaseInsensitive: false,
+                },
+                {
+                    label: "status",
+                    key: 'status',
+                    isCaseInsensitive: false,
+                },
+                {
+                  label: 'Action',
+                  key: 'action',
+                  renderCallback: (value: any, alert: any) => {
+                    return <td>
+                      <div className="d-inline-block">
+                        <button className="btn btn-primary" onClick={e => this.showDetail(e, true, alert, "Edit Subject")}>
+                          {/* <i onClick={e => this.showDetail(e,true,alert, "Edit Branch")} className="fa fa-edit"></i> */}
+                                        Edit
+                                      </button>
+                      </div>
+                    </td>
+                  },
+                  isCaseInsensitive: true
+                }
+            ],
         };
         this.registerSocket = this.registerSocket.bind(this);
         this.validateFields = this.validateFields.bind(this);
         this.getInput = this.getInput.bind(this);
         this.createBatchSelectbox = this.createBatchSelectbox.bind(this);
-        this.createRows = this.createRows.bind(this);
+        // this.createRows = this.createRows.bind(this);
         this.createSubjectSelectbox = this.createSubjectSelectbox.bind(this);
     }
     
-    async componentDidMount(){
-        await this.registerSocket();
-    }
+    // async componentDidMount(){
+    //     await this.registerSocket();
+    // }
     registerSocket() {
         const socket = wsCmsBackendServiceSingletonClient.getInstance();
     
@@ -113,40 +180,40 @@ class Subject<T = {[data: string]: any}> extends React.Component<SubjectProps, a
         }));
     }
 
-    createRows(objAry: any) {
-        const {departmentId} = this.state;
-        console.log("createRows() - subject list on subject page:  ", objAry);
-        if(objAry === undefined || objAry === null) {
-            return;
-        }
-        const aryLength = objAry.length;
-        const retVal = [];
-        for (let i = 0; i < aryLength; i++) {
-            const obj = objAry[i];
-            if(parseInt(obj.departmentId,10) === parseInt(departmentId,10)){
-                retVal.push(
-                    <tr >
-                      <td>{obj.id}</td>
-                      <td>{obj.subjectCode}</td>
-                      <td>{obj.subjectType}</td>
-                      <td>{obj.subjectDesc}</td>
-                      <td>{obj.cmsDepartmentVo.name}</td>
-                      <td>{obj.cmsBatchVo.batch}</td>
-                      <td>{(obj.cmsSectionVo !== null && obj.cmsSectionVo !== undefined) ? obj.cmsSectionVo.section : ""}</td>
-                      <td>{(obj.cmsTeacherVo !== null && obj.cmsTeacherVo !== undefined) ? obj.cmsTeacherVo.teacherName : ""}</td>
-                      <td>{obj.status}</td>
-                      <td>
-                          {
-                              <button className="btn btn-primary" onClick={e => this.showDetail(e, true, obj, "Edit Subject")}>Edit</button>
-                          }
-                      </td>
-                    </tr>
-                  );
-            }
+    // createRows(objAry: any) {
+    //     const {departmentId} = this.state;
+    //     console.log("createRows() - subject list on subject page:  ", objAry);
+    //     if(objAry === undefined || objAry === null) {
+    //         return;
+    //     }
+    //     const aryLength = objAry.length;
+    //     const retVal = [];
+    //     for (let i = 0; i < aryLength; i++) {
+    //         const obj = objAry[i];
+    //         if(parseInt(obj.departmentId,10) === parseInt(departmentId,10)){
+    //             retVal.push(
+    //                 <tr >
+    //                   <td>{obj.id}</td>
+    //                   <td>{obj.subjectCode}</td>
+    //                   <td>{obj.subjectType}</td>
+    //                   <td>{obj.subjectDesc}</td>
+    //                   <td>{obj.cmsDepartmentVo.name}</td>
+    //                   <td>{obj.cmsBatchVo.batch}</td>
+    //                   <td>{(obj.cmsSectionVo !== null && obj.cmsSectionVo !== undefined) ? obj.cmsSectionVo.section : ""}</td>
+    //                   <td>{(obj.cmsTeacherVo !== null && obj.cmsTeacherVo !== undefined) ? obj.cmsTeacherVo.teacherName : ""}</td>
+    //                   <td>{obj.status}</td>
+    //                   <td>
+    //                       {
+    //                           <button className="btn btn-primary" onClick={e => this.showDetail(e, true, obj, "Edit Subject")}>Edit</button>
+    //                       }
+    //                   </td>
+    //                 </tr>
+    //               );
+    //         }
             
-        }
-        return retVal;
-    }
+    //     }
+    //     return retVal;
+    // }
 
     showModal(e: any, bShow: boolean, headerLabel: any) {
         e && e.preventDefault();
@@ -320,13 +387,18 @@ class Subject<T = {[data: string]: any}> extends React.Component<SubjectProps, a
 
     createBatchSelectbox(data: any, value: any, key: any, label: any){
         const{departmentId} = this.state;
+        console.log("data : ",data);
         let retData = [];
         if(data.length > 0){
+            console.log("in 1")
             for(let i=0; i<data.length;i++){
                 let item = data[i];
                 if(departmentId !== null && departmentId !== undefined && item !== null && 
                     item !== undefined && item.cmsDepartmentVo !== null && item.cmsDepartmentVo !== undefined){
-                    if(parseInt(departmentId, 10) === parseInt(item.cmsDepartmentVo.id, 10)){
+                        console.log("in 2")
+                        if(parseInt(departmentId, 10) === parseInt(item.cmsDepartmentVo.id, 10)){
+                        console.log("I am in");
+                        
                         retData.push(
                             <option value={item[value]} key={item[key]}>{item[label]}</option>
                         );
@@ -390,11 +462,47 @@ class Subject<T = {[data: string]: any}> extends React.Component<SubjectProps, a
         } 
         return retData;
     }
+    async getSubjectList (){
+        console.log("Refreshing subject list");
+        const { data } =  await this.props.client.query({
+          query: GET_SUBJECT_LIST,
+          fetchPolicy: 'no-cache'
+        })
+        const temp = data.getSubjectList;
+        this.setState({
+          list: temp
+        });
+        }
 
+    async componentDidMount() {
+        await this.registerSocket();
+        await this.getSubject();
+      }
+    getSubject = async () => {
+        const { data } = await this.props.client.query({
+          query: GET_SUBJECT_LIST,
+          fetchPolicy: 'no-cache',
+        }).then((res: any) => {
+          const data=res.data;
+          console.log("Subject data :::", data.getSubjectList);
+    
+          this.setState({
+            // subjectList: data.getSubjectList,
+            // batchList: data.getBatchList,
+            // teacherList: data.getTeacherList,
+            // sectionList: data.getSectionList,
+          });
+    
+          console.log(" state variable Subject data :::", this.state.subjectList);
+
+        });
+      }
     render() {
         const {subjectList, teacherList, batchList, sectionList, isModalOpen, subjectObj, modelHeader, errorMessage, successMessage} = this.state;
         return (
-            <main>
+            // <main>
+            <section className="customCss">
+
                 <Modal isOpen={isModalOpen} className="react-strap-modal-container">
                     <ModalHeader>{modelHeader}</ModalHeader>
                     <ModalBody className="modal-content">
@@ -479,7 +587,22 @@ class Subject<T = {[data: string]: any}> extends React.Component<SubjectProps, a
                                         : null
                                         
                                 }
-                                
+                                {
+                                    modelHeader === "Edit Subject" ?
+                                    // <div className="mdflex modal-fwidth">
+                                    <div className="fwidth-modal-text m-r-1">
+                                        <label className="gf-form-label b-0 bg-transparent"> Year<span style={{ color: 'red' }}> * </span></label>
+                                        <select name="batchId" id="batchId" onChange={this.onChange} value={subjectObj.batchId} className="gf-form-input">
+                                        <option value="">Select Academic Year</option>
+                                        {
+                                            commonFunctions.createSelectbox(batchList, "id", "id", "batch")
+                                        }
+                                        </select>
+                                    </div> 
+                                            
+                                        : null
+                                        
+                                }
                                  
                                 <div className="m-t-1 text-center">
                                     {
@@ -500,7 +623,7 @@ class Subject<T = {[data: string]: any}> extends React.Component<SubjectProps, a
                     <i className="fa fa-plus-circle"></i> Add New Subject
                 </button>
                     
-                {
+                {/* {
                     subjectList !== null && subjectList !== undefined && subjectList.length > 0 ?
                         <div style={{width:'100%', height:'300px', overflow:'auto'}}>
                             <table id="ayTable" className="striped-table fwidth bg-white p-2 m-t-1">
@@ -524,9 +647,12 @@ class Subject<T = {[data: string]: any}> extends React.Component<SubjectProps, a
                             </table>
                         </div>
                     : null
-                }
+                } */}
+            <Table valueFromData={{ columns: this.state.columns, data: subjectList }} perPageLimit={6} visiblecheckboxStatus={true} tableClasses={{ table: "alert-data-tabel", tableParent: "alerts-data-tabel", parentClass: "all-alert-data-table" }} searchKey="name" showingLine="Showing %start% to %end% of %total%" />
+
                 
-            </main>
+            {/* </main> */}
+            </section>
         );
     }
 }

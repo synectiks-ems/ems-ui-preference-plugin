@@ -4,15 +4,21 @@ import { commonFunctions } from '../../_utilites/common.functions';
 import  "../../../../css/custom.css";
 import {MessageBox} from '../../Message/MessageBox'
 import { withApollo } from 'react-apollo';
-import { SAVE_FACILITY } from '../../_queries';
-import moment = require('moment');
+import { SAVE_FACILITY, GET_FACILITY_LIST } from '../../_queries';
+// import moment = require('moment');
+import * as moment from 'moment';
+import Table from '../../../../css/table';
 
 
+const w140 = {
+    width: '140px',
+    marginBottom: '5px',
+};
 export interface FacilityProps extends React.HTMLAttributes<HTMLElement>{
-    [data: string]: any;
-    branchList?: any;  
-    ayList?: any;
-    facilityList?: any;
+  [data: string]: any;
+  branchList?: any;  
+  ayList?: any;
+  facilityList?: any;
 }
 
 const ERROR_MESSAGE_MANDATORY_FIELD_MISSING = "Mandatory fields missing";
@@ -20,249 +26,362 @@ const ERROR_MESSAGE_SERVER_SIDE_ERROR = "Due to some error in preferences servic
 const SUCCESS_MESSAGE_FACILITY_ADDED = "New facility saved successfully";
 const SUCCESS_MESSAGE_FACILITY_UPDATED = "Facility updated successfully";
 const ERROR_MESSAGE_DATES_OVERLAP = "End date cannot be prior or same as start date";
+ 
+class FacilityObj {
+    id: any;
+    name: any;
+    amount: any;
+    strStartDate: any;
+    strEndDate: any;
+    academicYearDescription: any;
+    branchName: any;
+    status: any;
+
+    constructor(id: any, name: any, amount: any, strStartDate: any, strEndDate: any, academicYearDescription: any, branchName: any, status: any){
+        this.id = id;
+        this.name= name;
+          this.amount= amount;
+          this.strStartDate= strStartDate;
+          this.strEndDate= strEndDate;
+          this.academicYearDescription= academicYearDescription;
+          this.branchName= branchName;
+          this.status= status;
+        }  
+}
 
 class Facility<T = {[data: string]: any}> extends React.Component<FacilityProps, any> {
-    constructor(props: FacilityProps) {
-        super(props);
-        this.state = {
-            branchList: this.props.branchList,
-            ayList: this.props.ayList,
-            facilityList: this.props.facilityList,
-            isModalOpen: false,
-            facilityObj: {
-                branchId: "",
-                academicYearId:"",
-                name: "",
-                amount: "",
-                startDate: "",
-                endDate: "",
-                status: "",
-            },
-            errorMessage: "",
-            successMessage: "",
-            modelHeader: ""
+  constructor(props: FacilityProps) {
+      super(props);
+      this.state = {
+          branchList: this.props.branchList,
+          ayList: this.props.ayList,
+        //   facilityList: this.props.facilityList,
+        facilityList:[],
+          isModalOpen: false,
+          facilityObj: {
+              branchName: "",
+              description:"",
+              name: "",
+              amount: "",
+              strStrDate: "",
+              strEndDate: "",
+              status: "",
+          },
+          errorMessage: "",
+          successMessage: "",
+          modelHeader: "",
+          facilityObjList: [],
+          columns: [
+                {
+                    label: "Id",
+                    key: 'id',
+                    // isCaseInsensitive: true,
+                },
+                {
+                    label: "Facility Name",
+                    key: 'name',
+                    // isCaseInsensitive: false,
+                },
+                {
+                    label: "Amount",
+                    key: 'amount',
+                    // isCaseInsensitive: false,
+                },
+                {
+                    label: "Start Date",
+                    key: 'strStartDate',
+                    // isCaseInsensitive: false,
+                },
+                {
+                    label: "End Date",
+                    key: 'strEndDate',
+                    // isCaseInsensitive: false,
+                },
+                {
+                    label: "Academic Year",
+                    key: 'academicYearDescription',
+                    // isCaseInsensitive: false,
+                },
+                {
+                    label: "Branch",
+                    key: 'branchName',
+                    // isCaseInsensitive: false,
+                },
+                {
+                    label: "status",
+                    key: 'status',
+                    // isCaseInsensitive: false,
+                },
+                {
+                  label: 'Action',
+                  key: 'action',
+                  renderCallback: (value: any, alert: any) => {
+                    return <td>
+                      <div className="d-inline-block">
+                        <button className="btn btn-primary" onClick={e => this.showDetail(e, true, alert, "Edit Facility")}>
+                          {/* <i onClick={e => this.showDetail(e,true,alert, "Edit Branch")} className="fa fa-edit"></i> */}
+                                        Edit
+                                      </button>
+                      </div>
+                    </td>
+                  },
+                  isCaseInsensitive: true
+                }
+            ],
+
         };
-        
     }
-    
     showDetail(e: any, bShow: boolean, editObj: any, modelHeader: any) {
-        e && e.preventDefault();
-        const { facilityObj } = this.state;
-        
-        facilityObj.id = editObj.id;
-        facilityObj.academicYearId = editObj.academicYearId;
-        facilityObj.branchId = editObj.branchId;
-        facilityObj.name = editObj.name;
-        facilityObj.amount = editObj.amount;
-        facilityObj.startDate = moment(editObj.strStartDate,"DD-MM-YYYY").format("YYYY-MM-DD");
-        facilityObj.endDate = moment(editObj.strEndDate,"DD-MM-YYYY").format("YYYY-MM-DD");
-        facilityObj.status = editObj.status;
-        
-        this.setState(() => ({
-            isModalOpen: bShow,
-            facilityObj: facilityObj,
-            modelHeader: modelHeader,
-            errorMessage: "",
-            successMessage: "",
-        }));
-    }
+      e && e.preventDefault();
+      const { facilityObj } = this.state;
+      
+      facilityObj.id = editObj.id;
+      facilityObj.academicYearId = editObj.academicYearId;
+      facilityObj.branchId = editObj.branchId;
+      facilityObj.name = editObj.name;
+      facilityObj.amount = editObj.amount;
+      facilityObj.startDate = moment(editObj.strStartDate,"DD-MM-YYYY").format("YYYY-MM-DD");
+      facilityObj.endDate = moment(editObj.strEndDate,"DD-MM-YYYY").format("YYYY-MM-DD");
+      facilityObj.status = editObj.status;
+      
+      this.setState(() => ({
+          isModalOpen: bShow,
+          facilityObj: facilityObj,
+          modelHeader: modelHeader,
+          errorMessage: "",
+          successMessage: "",
+      }));
+  }
 
-    createRows(objAry: any) {
-        const { source } = this.state;
-        console.log("createRows() - facility list on facility page:  ", objAry);
-        if(objAry === undefined || objAry === null) {
-            return;
-        }
-        const aryLength = objAry.length;
-        const retVal = [];
-        for (let i = 0; i < aryLength; i++) {
-            const obj = objAry[i];
-            retVal.push(
-              <tr >
-                <td>{obj.id}</td>
-                <td>{obj.name}</td>
-                <td>{obj.amount}</td>
-                <td>{obj.strStartDate}</td>
-                <td>{obj.strEndDate}</td>
-                <td>{obj.cmsAcademicYearVo.description}</td>
-                <td>{obj.cmsBranchVo.branchName}</td>
-                <td>{obj.status}</td>
-                <td>
-                    {
-                        <button className="btn btn-primary" onClick={e => this.showDetail(e, true, obj, "Edit Facility")}>Edit</button>
-                    }
-                </td>
-              </tr>
-            );
-        }
-        return retVal;
-    }
+  showModal(e: any, bShow: boolean, headerLabel: any) {
+    e && e.preventDefault();
+    this.setState(() => ({
+        isModalOpen: bShow,
+        facilityObj: {},
+        modelHeader: headerLabel,
+        errorMessage: "",
+        successMessage: "",
+    }));
+}
 
-    showModal(e: any, bShow: boolean, headerLabel: any) {
-        e && e.preventDefault();
-        this.setState(() => ({
-            isModalOpen: bShow,
-            facilityObj: {},
-            modelHeader: headerLabel,
-            errorMessage: "",
-            successMessage: "",
-        }));
-    }
-
-    onChange = (e: any) => {
-        e.preventDefault();
-        const { name, value } = e.nativeEvent.target;
-        const { facilityObj } = this.state;
-        
-        this.setState({
-            facilityObj: {
-                ...facilityObj,
-                [name]: value
-            },
-            errorMessage: "",
-            successMessage: "",
-        });
-        
-        commonFunctions.restoreTextBoxBorderToNormal(name);
-    }
-
+onChange = (e: any) => {
+    e.preventDefault();
+    const { name, value } = e.nativeEvent.target;
+    const { facilityObj } = this.state;
     
-    validateFields(obj: any){
-        let isValid = true;
-        let errorMessage = ""
-        if(obj.branchId === undefined || obj.branchId === null || obj.branchId === ""){
-            commonFunctions.changeTextBoxBorderToError((obj.branchId === undefined || obj.branchId === null) ? "" : obj.branchId, "branchId");
-            errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
-            isValid = false;
-        }
-        if(obj.academicYearId === undefined || obj.academicYearId === null || obj.academicYearId === ""){
-            commonFunctions.changeTextBoxBorderToError((obj.academicYearId === undefined || obj.academicYearId === null) ? "" : obj.academicYearId, "academicYearId");
-            errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
-            isValid = false;
-        }
-        if(obj.name === undefined || obj.name === null || obj.name === ""){
-            commonFunctions.changeTextBoxBorderToError((obj.name === undefined || obj.name === null) ? "" : obj.name, "name");
-            errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
-            isValid = false;
-        }
-        if(obj.amount === undefined || obj.amount === null || obj.amount === ""){
-            commonFunctions.changeTextBoxBorderToError((obj.amount === undefined || obj.amount === null) ? "" : obj.amount, "amount");
-            errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
-            isValid = false;
-        }
-        if(obj.startDate === undefined || obj.startDate === null || obj.startDate === ""){
-            commonFunctions.changeTextBoxBorderToError((obj.startDate === undefined || obj.startDate === null) ? "" : obj.startDate, "startDate");
-            errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
-            isValid = false;
-        }
-        if(obj.endDate === undefined || obj.endDate === null || obj.endDate === ""){
-            commonFunctions.changeTextBoxBorderToError((obj.endDate === undefined || obj.endDate === null) ? "" : obj.endDate, "endDate");
-            errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
-            isValid = false;
-        }
-        
-        if(obj.status === undefined || obj.status === null || obj.status === ""){
-            commonFunctions.changeTextBoxBorderToError((obj.status === undefined || obj.status === null) ? "" : obj.status, "status");
-            errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
-            isValid = false;
-        }        
+    this.setState({
+        facilityObj: {
+            ...facilityObj,
+            [name]: value
+        },
+        errorMessage: "",
+        successMessage: "",
+    });
+    
+    commonFunctions.restoreTextBoxBorderToNormal(name);
+}
 
-        if(isValid){
-            isValid = this.validateDates(obj.startDate, obj.endDate);
-            if(isValid === false){
-                errorMessage = ERROR_MESSAGE_DATES_OVERLAP;
-            }
-         }
 
-        this.setState({
-            errorMessage: errorMessage
-        });
-        return isValid; 
+validateFields(obj: any){
+    let isValid = true;
+    let errorMessage = ""
+    if(obj.branchId === undefined || obj.branchId === null || obj.branchId === ""){
+        commonFunctions.changeTextBoxBorderToError((obj.branchId === undefined || obj.branchId === null) ? "" : obj.branchId, "branchId");
+        errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
+        isValid = false;
     }
-
-    validateDates(startDate: any, endDate: any){
-        let stDate = moment(startDate, "YYYY-MM-DD");
-        let enDate = moment(endDate, "YYYY-MM-DD");
-        if (enDate.isSameOrBefore(stDate) || stDate.isSameOrAfter(enDate)) {
-            return false;
-        }
-        return true;
+    if(obj.academicYearId === undefined || obj.academicYearId === null || obj.academicYearId === ""){
+        commonFunctions.changeTextBoxBorderToError((obj.academicYearId === undefined || obj.academicYearId === null) ? "" : obj.academicYearId, "academicYearId");
+        errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
+        isValid = false;
     }
-
-    getInput(facilityObj: any, modelHeader: any){
-        let id = null;
-        if(modelHeader === "Edit Facility"){
-            id = facilityObj.id;
-        }
-        let input = {
-            id: id,
-            name: facilityObj.name,
-            amount: facilityObj.amount,
-            strStartDate: moment(facilityObj.startDate).format("DD-MM-YYYY"),
-            strEndDate: moment(facilityObj.endDate).format("DD-MM-YYYY"),
-            status: facilityObj.status,
-            academicYearId: facilityObj.academicYearId,
-            branchId: facilityObj.branchId
-        };
-        return input;
+    if(obj.name === undefined || obj.name === null || obj.name === ""){
+        commonFunctions.changeTextBoxBorderToError((obj.name === undefined || obj.name === null) ? "" : obj.name, "name");
+        errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
+        isValid = false;
+    }
+    if(obj.amount === undefined || obj.amount === null || obj.amount === ""){
+        commonFunctions.changeTextBoxBorderToError((obj.amount === undefined || obj.amount === null) ? "" : obj.amount, "amount");
+        errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
+        isValid = false;
+    }
+    if(obj.startDate === undefined || obj.startDate === null || obj.startDate === ""){
+        commonFunctions.changeTextBoxBorderToError((obj.startDate === undefined || obj.startDate === null) ? "" : obj.startDate, "startDate");
+        errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
+        isValid = false;
+    }
+    if(obj.endDate === undefined || obj.endDate === null || obj.endDate === ""){
+        commonFunctions.changeTextBoxBorderToError((obj.endDate === undefined || obj.endDate === null) ? "" : obj.endDate, "endDate");
+        errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
+        isValid = false;
     }
     
-    async doSave(inp: any, id: any){
-        let btn = document.querySelector("#"+id);
-        btn && btn.setAttribute("disabled", "true");
-        let exitCode = 0;
-        
-        await this.props.client.mutate({
-            mutation: SAVE_FACILITY,
-            variables: { 
-                input: inp
-            },
-        }).then((resp: any) => {
-            console.log("Success in saveFacility Mutation. Exit code : ",resp.data.saveFacility.cmsFacility.exitCode);
-            exitCode = resp.data.saveFacility.cmsFacility.exitCode;
-            let temp = resp.data.saveFacility.cmsFacility.dataList; 
-            console.log("New facility list : ", temp);
-            this.setState({
-                facilityList: temp
-            });
-        }).catch((error: any) => {
-            exitCode = 1;
-            console.log('Error in saveFacility : ', error);
-        });
-        btn && btn.removeAttribute("disabled");
-        
-        let errorMessage = "";
-        let successMessage = "";
-        if(exitCode === 0 ){
-            successMessage = SUCCESS_MESSAGE_FACILITY_ADDED;
-            if(inp.id !== null){
-                successMessage = SUCCESS_MESSAGE_FACILITY_UPDATED;
-            }
-        }else {
-            errorMessage = ERROR_MESSAGE_SERVER_SIDE_ERROR;
-        }
-        this.setState({
-            successMessage: successMessage,
-            errorMessage: errorMessage
-        });
-    }
+    if(obj.status === undefined || obj.status === null || obj.status === ""){
+        commonFunctions.changeTextBoxBorderToError((obj.status === undefined || obj.status === null) ? "" : obj.status, "status");
+        errorMessage = ERROR_MESSAGE_MANDATORY_FIELD_MISSING;
+        isValid = false;
+    }        
 
-    save = (e: any) => {
-        const { id } = e.nativeEvent.target;
-        const {facilityObj, modelHeader} = this.state;
-        let isValid = this.validateFields(facilityObj);
+    if(isValid){
+        isValid = this.validateDates(obj.startDate, obj.endDate);
         if(isValid === false){
-            return;
+            errorMessage = ERROR_MESSAGE_DATES_OVERLAP;
         }
-        const inputObj = this.getInput(facilityObj, modelHeader);
-        this.doSave(inputObj, id);
-    }
+     }
 
-    render() {
-        const {facilityList, ayList, branchList, isModalOpen, facilityObj, modelHeader, errorMessage, successMessage} = this.state;
+    this.setState({
+        errorMessage: errorMessage
+    });
+    return isValid; 
+}
+
+validateDates(startDate: any, endDate: any){
+    let stDate = moment(startDate, "YYYY-MM-DD");
+    let enDate = moment(endDate, "YYYY-MM-DD");
+    if (enDate.isSameOrBefore(stDate) || stDate.isSameOrAfter(enDate)) {
+        return false;
+    }
+    return true;
+}
+
+getInput(facilityObj: any, modelHeader: any){
+    let id = null;
+    if(modelHeader === "Edit Facility"){
+        id = facilityObj.id;
+    }
+    let input = {
+        id: id,
+        name: facilityObj.name,
+        amount: facilityObj.amount,
+        strStartDate: moment(facilityObj.startDate).format("DD-MM-YYYY"),
+        strEndDate: moment(facilityObj.endDate).format("DD-MM-YYYY"),
+        status: facilityObj.status,
+        academicYearId: facilityObj.academicYearId,
+        branchId: facilityObj.branchId
+    };
+    return input;
+}
+
+async doSave(inp: any, id: any){
+    let btn = document.querySelector("#"+id);
+    btn && btn.setAttribute("disabled", "true");
+    let exitCode = 0;
+    
+    await this.props.client.mutate({
+        mutation: SAVE_FACILITY,
+        variables: { 
+            input: inp
+        },
+    }).then((resp: any) => {
+        console.log("Success in saveFacility Mutation. Exit code : ",resp.data.saveFacility.cmsFacility.exitCode);
+        exitCode = resp.data.saveFacility.cmsFacility.exitCode;
+        let temp = resp.data.saveFacility.cmsFacility.dataList; 
+        console.log("New facility list : ", temp);
+        let i;
+        let obj;
+       let ary = [];
+       for (i in temp) {
+       obj = new FacilityObj(temp[i].id, temp[i].name, 
+        temp[i].amount, temp[i].strStartDate, temp[i].strEndDate, 
+        temp[i].cmsAcademicYearVo.description, 
+        temp[i].cmsBranchVo.branchName, temp[i].status);
+       ary.push(obj);
+       }
+        this.setState({
+            facilityList: ary
+        });
+    }).catch((error: any) => {
+        exitCode = 1;
+        console.log('Error in saveFacility : ', error);
+    });
+    btn && btn.removeAttribute("disabled");
+    
+    let errorMessage = "";
+    let successMessage = "";
+    if(exitCode === 0 ){
+        successMessage = SUCCESS_MESSAGE_FACILITY_ADDED;
+        if(inp.id !== null){
+            successMessage = SUCCESS_MESSAGE_FACILITY_UPDATED;
+        }
+    }else {
+        errorMessage = ERROR_MESSAGE_SERVER_SIDE_ERROR;
+    }
+    this.setState({
+        successMessage: successMessage,
+        errorMessage: errorMessage
+    });
+}
+
+save = (e: any) => {
+    const { id } = e.nativeEvent.target;
+    const {facilityObj, modelHeader} = this.state;
+    let isValid = this.validateFields(facilityObj);
+    if(isValid === false){
+        return;
+    }
+    const inputObj = this.getInput(facilityObj, modelHeader);
+    this.doSave(inputObj, id);
+}
+componentDidMount() {
+    try {
+      this.getFacilityList();
+    } catch (error) {
+  
+    }
+  }
+async getFacilityList() {
+    console.log("Refreshing Facility list");
+    const { data } = await this.props.client.query({
+      query: GET_FACILITY_LIST,
+      fetchPolicy: 'no-cache'
+    })
+    const temp = data.getFacilityList;
+      console.log("final data : ", temp);
+      let i;
+      let obj;
+      let ary=[];
+      for(i in temp){
+        obj=new FacilityObj(temp[i].id,temp[i].name,temp[i].amount,temp[i].strStartDate,temp[i].strEndDate,temp[i].cmsAcademicYearVo.description,temp[i].cmsBranchVo.branchName,temp[i].status);
+        
+          ary.push(obj);
+      }
+      console.log("Final ary::  ",ary)
+      this.setState({
+        facilityList: ary,
+        facilityObjList:temp,
+      });
+  }
+
+    // async componentDidMount() {
+    //     await this.getCourse();
+    //   }
+    //   getCourse = async () => {
+    //     const { data } = await this.props.client.query({
+    //       query: GET_FACILITY_LIST,
+    //       fetchPolicy: 'no-cache',
+    //     }).then((res: any) => {
+    //       const data=res.data;
+    //       console.log("Facility data :::", data.getFacilityList);
+    
+    //       this.setState({
+    //         // academicYearList: data.getAcademicYearList,
+    //         // facilityList: data.getFacilityList,
+    //         // branchList: data.getBranchList,
+    //       });
+    
+    //       console.log(" state variable AcademicYear data :::", this.state.academicYear);
+    //       console.log(" state variable Course data :::", this.state.courseList);
+    //       console.log(" state variable Branch data :::", this.state.branchList);
+
+    //     });
+    //   }
+
+      render() {
+        const { facilityList, ayList, branchList, isModalOpen, facilityObj, modelHeader, errorMessage, successMessage} = this.state;
         return (
-            <main>
-                <Modal isOpen={isModalOpen} className="react-strap-modal-container">
+    
+          <section className="customCss">
+        <Modal isOpen={isModalOpen} className="react-strap-modal-container">
                     <ModalHeader>{modelHeader}</ModalHeader>
                     <ModalBody className="modal-content">
                         <form className="gf-form-group section m-0 dflex">
@@ -352,34 +471,12 @@ class Facility<T = {[data: string]: any}> extends React.Component<FacilityProps,
                 <button className="btn btn-primary" style={{width:'200px'}} onClick={e => this.showModal(e, true, "Add New Facility")}>
                     <i className="fa fa-plus-circle"></i> Add New Facility
                 </button>
-                {
-                    facilityList !== null && facilityList !== undefined && facilityList.length > 0 ?
-                        <div style={{width:'100%', height:'250px', overflow:'auto'}}>
-                            <table id="ayTable" className="striped-table fwidth bg-white p-2 m-t-1">
-                                <thead>
-                                    <tr>
-                                        <th>Id</th>
-                                        <th>Facility Name</th>
-                                        <th>Amount</th>
-                                        <th>Start Date</th>
-                                        <th>End Date</th>
-                                        <th>Academic Year</th>
-                                        <th>Branch</th>
-                                        <th>Status</th>
-                                        <th>Edit</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    { this.createRows(facilityList) }
-                                </tbody>
-                            </table>
-                        </div>
-                    : null
-                }
-                
-            </main>
+            <Table valueFromData={{ columns: this.state.columns, data: facilityList }} perPageLimit={6} visiblecheckboxStatus={true} tableClasses={{ table: "alert-data-tabel", tableParent: "alerts-data-tabel", parentClass: "all-alert-data-table" }} searchKey="name" showingLine="Showing %start% to %end% of %total%" />
+    
+          </section>
         );
+      }
     }
-}
+
 
 export default withApollo(Facility);

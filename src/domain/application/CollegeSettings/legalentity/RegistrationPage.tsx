@@ -6,6 +6,7 @@ import  "../../../../css/custom.css";
 import { withApollo } from 'react-apollo';
 import { SAVE_LEGAL_ENTITY } from '../../_queries';
 import * as moment from 'moment';
+import LegalEntityWorkFlow from './LegalEntityWorkFlow';
 
 const ERROR_MESSAGE_MANDATORY_FIELD_MISSING = "Mandatory fields missing";
 const ERROR_MESSAGE_SERVER_SIDE_ERROR = "Due to some error in preferences service, legal entity could not be saved. Please check preferences service logs";
@@ -663,7 +664,10 @@ class RegistrationPage<T = {[data: string]: any}> extends React.Component<Regist
             </select>
           </div>
         </div>
-        <Nav tabs className="" id="rmfloat">
+        <React.Fragment>
+      <LegalEntityWorkFlow />
+    </React.Fragment>
+        {/* <Nav tabs className="" id="rmfloat">
           <NavItem className="cursor-pointer">
             <NavLink className={`${activeTab === 0 ? 'active' : ''}`} onClick={() => { this.toggleTab(0); }} >
               College Info
@@ -689,9 +693,9 @@ class RegistrationPage<T = {[data: string]: any}> extends React.Component<Regist
             PT Info 
           </NavLink>
           </NavItem>
-        </Nav>
-        <TabContent activeTab={activeTab} className="ltab-contianer">
-          <TabPane tabId={0}>
+        </Nav> */}
+        {/* <TabContent activeTab={activeTab} className="ltab-contianer"> */}
+          {/* <TabPane tabId={0}>
             <div>
               <div className="contnet">
                 <div className="gf-form-group">
@@ -731,13 +735,13 @@ class RegistrationPage<T = {[data: string]: any}> extends React.Component<Regist
                   <div className="gf-form-button-row p-r-0 p-t-1">
                     <button type="button" onClick={this.validateCollegeInfo} className="btn btn-primary border-bottom"> Next </button>
                     {/* <button type="reset" className="btn btn-danger border-bottom"> Clear </button> */}
-                  </div>
+                  {/* </div>
                 </div>
               </div>
             </div>
-          </TabPane>
+          </TabPane> */} 
 
-          <TabPane tabId={1}>
+          {/* <TabPane tabId={1}>
           <div>
               <div className="contnet">
                 <div className="gf-form-group">
@@ -777,12 +781,12 @@ class RegistrationPage<T = {[data: string]: any}> extends React.Component<Regist
                   <div className="gf-form-button-row p-r-0 p-t-1">
                     <button type="button" onClick={this.validateItInfo} className="btn btn-primary border-bottom"> Next </button>
                     {/* <button type="reset" className="btn btn-danger border-bottom"> Clear </button> */}
-                  </div>
+                  {/* </div>
                 </div>
               </div>
             </div>
-          </TabPane>
-          <TabPane tabId={2}>
+          </TabPane> */} 
+          {/* <TabPane tabId={2}>
             <div>
               <div className="contnet">
                 <div className="gf-form-group">
@@ -818,12 +822,12 @@ class RegistrationPage<T = {[data: string]: any}> extends React.Component<Regist
                   <div className="gf-form-button-row p-r-0 p-t-1">
                     <button type="button" onClick={this.validatePfInfo} className="btn btn-primary border-bottom"> Next </button>
                     {/* <button type="reset" className="btn btn-danger border-bottom"> Clear </button> */}
-                  </div>
+                  {/* </div>
                 </div>
               </div>
             </div>
-          </TabPane>
-          <TabPane tabId={3}>
+          </TabPane> */} 
+          {/* <TabPane tabId={3}>
             <div >
               <div className="contnet">
                 <div className="gf-form-group">
@@ -861,12 +865,12 @@ class RegistrationPage<T = {[data: string]: any}> extends React.Component<Regist
                   <div className="gf-form-button-row p-r-0 p-t-1">
                     <button type="button" onClick={this.validateEsiInfo} className="btn btn-primary border-bottom"> Next </button>
                     {/* <button type="reset" className="btn btn-danger border-bottom"> Clear </button> */}
-                  </div>
+                  {/* </div>
                 </div>
               </div>
             </div>
-          </TabPane>
-          <TabPane tabId={4}>
+          </TabPane> */} 
+          {/* <TabPane tabId={4}>
           <div >
               <div className="contnet">
                 <div className="gf-form-group">
@@ -902,12 +906,12 @@ class RegistrationPage<T = {[data: string]: any}> extends React.Component<Regist
                   <div className="gf-form-button-row p-r-0 p-t-1">
                     <button type="button" id="btnSaveLegalEntity" onClick={this.save} className="btn btn-primary border-bottom"> Save </button>
                     {/* <button type="reset" className="btn btn-danger border-bottom"> Clear </button> */}
-                  </div>
+                  {/* </div>
                 </div>
               </div>
             </div>
-          </TabPane>
-        </TabContent>
+          </TabPane> */} 
+        {/* </TabContent> */}
       </section>
     );
   }

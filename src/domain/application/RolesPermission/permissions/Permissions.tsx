@@ -4,7 +4,12 @@ import {MessageBox} from '../../Message/MessageBox'
 import { rbacSettingsServices } from '../../_services/rbacSettings.service';
 import { commonFunctions } from '../../_utilites/common.functions';
 import * as _ from "lodash";
+import Table from '../../../../css/table';
 
+const w140 = {
+  width: '140px',
+  marginBottom: '5px',
+};
 const ERROR_MESSAGE_MANDATORY_FIELD_MISSING = "Mandatory fields missing";
 const ERROR_MESSAGE_SERVER_SIDE_ERROR = "Due to some error in security service, permission could not be saved. Please check security service logs";
 const SUCCESS_MESSAGE_ADDED = "New permission saved successfully";
@@ -31,14 +36,34 @@ export class Permissions extends React.Component<any, any> {
       searchPermission: "",
       errorMessage: "",
       successMessage: "",
+      columns:[
+        {
+          label: "Name",
+          key: "name",
+          isCaseInsensitive: true,
+
+        },
+        {
+          label: "Permisssion",
+          key: "permission",
+          isCaseInsensitive: false,
+
+        },
+        {
+          label: "Description",
+          key: "description",
+          isCaseInsensitive: false,
+
+        }
+      ]
     };
     this.getAllPermissions = this.getAllPermissions.bind(this);
     this.showModal = this.showModal.bind(this);
     this.handleStateChange = this.handleStateChange.bind(this);
     this.createSelectbox = this.createSelectbox.bind(this);
     this.onChangePluginName = this.onChangePluginName.bind(this);
-    this.createRows = this.createRows.bind(this);
-    this.onSearchPermission = this.onSearchPermission.bind(this);
+    // this.createRows = this.createRows.bind(this);
+    // this.onSearchPermission = this.onSearchPermission.bind(this);
     this.isMandatoryField = this.isMandatoryField.bind(this);
     this.validate = this.validate.bind(this);
     this.savePermission = this.savePermission.bind(this);
@@ -138,25 +163,25 @@ export class Permissions extends React.Component<any, any> {
     });
   };
 
-  createRows(objAry: any) {
-    console.log("createRows() - permission page ##################################### ", objAry);
-    if(objAry === undefined || objAry === null) {
-        return;
-    }
-    const arrLength = objAry.length;
-    const retVal = [];
-      for (let i = 0; i < arrLength; i++) {
-        const obj = objAry[i];
-        retVal.push(
-          <tr >
-            <td>{obj.name}</td>
-            <td>{obj.permission}</td>
-            <td>{obj.description}</td>
-          </tr>
-        );
-      }
-    return retVal;
-  }
+  // createRows(objAry: any) {
+  //   console.log("createRows() - permission page ##################################### ", objAry);
+  //   if(objAry === undefined || objAry === null) {
+  //       return;
+  //   }
+  //   const arrLength = objAry.length;
+  //   const retVal = [];
+  //     for (let i = 0; i < arrLength; i++) {
+  //       const obj = objAry[i];
+  //       retVal.push(
+  //         <tr >
+  //           <td>{obj.name}</td>
+  //           <td>{obj.permission}</td>
+  //           <td>{obj.description}</td>
+  //         </tr>
+  //       );
+  //     }
+  //   return retVal;
+  // }
 
   onSearchPermission(e: any) {
     const { name, value } = e.target;
@@ -258,7 +283,7 @@ export class Permissions extends React.Component<any, any> {
             <button className="btn btn-primary m-1 width-14 m-r-1" onClick={e => this.showModal(e, true)} >
               <i className="fa fa-plus-circle mr-1" /> Create New Permission
             </button>
-            <input type="text" placeholder="search permission" name="searchPermission" onChange={this.onSearchPermission} value={searchPermission} />
+            {/* <input type="text" placeholder="search permission" name="searchPermission" onChange={this.onSearchPermission} value={searchPermission} /> */}
           </div>
 
           
@@ -313,7 +338,7 @@ export class Permissions extends React.Component<any, any> {
               </form>
             </ModalBody>
           </Modal>
-          <div style={{height:'350px', width:'100%', boxSizing:'border-box', display:'inline-block', verticalAlign:'middle', overflowY:'auto'}}>
+          {/* <div style={{height:'350px', width:'100%', boxSizing:'border-box', display:'inline-block', verticalAlign:'middle', overflowY:'auto'}}>
             <table className="fwidth" id="permissionTable" >
               <thead>
                 <tr>
@@ -328,8 +353,9 @@ export class Permissions extends React.Component<any, any> {
                 : null
               }
             </table>
-          </div>
-          
+          </div> */}
+                      <Table valueFromData={{ columns: this.state.columns, data: permissions }} perPageLimit={6} visiblecheckboxStatus={true} tableClasses={{ table: "alert-data-tabel", tableParent: "alerts-data-tabel", parentClass: "all-alert-data-table" }} searchKey="name" showingLine="Showing %start% to %end% of %total%" />
+
         </div>
       </div>
     );

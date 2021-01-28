@@ -6,6 +6,13 @@ import * as moment from 'moment';
 import wsCmsBackendServiceSingletonClient from '../../../../wsCmsBackendServiceClient';
 import {MessageBox} from '../../Message/MessageBox'
 import { SAVE_STAFF, GET_STAFF_LIST } from '../../_queries';
+import Table from '../../../../css/table';
+import StaffWorkFlow from './StaffWorkFlow';
+
+const w140 = {
+  width: '140px',
+  marginBottom: '5px',
+};
 
 export interface StaffProps extends React.HTMLAttributes<HTMLElement>{
   [data: string]: any;
@@ -93,6 +100,53 @@ class Staff extends React.Component<StaffProps, any> {
       cities: [],
       selectedState: '',
       selectedCity: '',
+      columns: [
+        // {
+        //     label: "Id",
+        //     key: 'id',
+        //     isCaseInsensitive: false,
+        // },
+        {
+          label: "Name",
+          key: 'teacherName',
+          isCaseInsensitive: false,
+      },
+      {
+        label: "Emp Id",
+        key: 'employeeId',
+        isCaseInsensitive: false,
+    },
+    {
+        label: "Designation",
+        key: 'designation',
+        isCaseInsensitive: false,
+    },
+    {
+        label: "Branch",
+        key: 'branchId',
+        isCaseInsensitive: false,
+    },
+    {
+        label: "Department",
+        key: 'departmentId',
+        isCaseInsensitive: false,
+    },
+    {
+        label: "Gender",
+        key: 'sex',
+        isCaseInsensitive: false,
+    },
+    {
+        label: "Type",
+        key: 'staffType',
+        isCaseInsensitive: false,
+    },
+    {
+        label: "Status",
+        key: 'status',
+        isCaseInsensitive: false,
+    },
+      ],
     };
     this.toggleTab = this.toggleTab.bind(this);
     this.showModal = this.showModal.bind(this);
@@ -115,9 +169,9 @@ class Staff extends React.Component<StaffProps, any> {
     this.download = this.download.bind(this);
   }
 
-  async componentDidMount(){
-    await this.registerSocket();
-  }
+  // async componentDidMount(){
+  //   await this.registerSocket();
+  // }
 
   registerSocket() {
     const socket = wsCmsBackendServiceSingletonClient.getInstance();
@@ -405,7 +459,6 @@ class Staff extends React.Component<StaffProps, any> {
       }
     }
     
-
     this.setState({
         errorMessage: errorMessage
     });
@@ -546,44 +599,40 @@ class Staff extends React.Component<StaffProps, any> {
     chkBox.checked = e.nativeEvent.target.checked;
   }
 
-  createRows(objAry: any) {
-    const {branchId, departmentId} = this.state;
-    console.log("createRows() - Staff list on staff page:  ", objAry);
-    if(objAry === undefined || objAry === null) {
-        return;
-    }
-    const aryLength = objAry.length;
-    const retVal = [];
-    for (let i = 0; i < aryLength; i++) {
-        const obj = objAry[i];
-        if(parseInt(obj.branchId,10) === parseInt(branchId,10) &&
-              parseInt(obj.departmentId,10) === parseInt(departmentId,10)){
-                retVal.push(
-                  <tr key="teacher.id">
-                        <td> <input type="checkbox" id={'chk'+obj.id} onClick={(e: any) => this.onClickCheckbox(i, e)}/> </td>
-                        <td>{obj.teacherName}</td>
-                        <td>{obj.employeeId}</td>
-                        <td>{obj.designation}</td>
-                        <td>{obj.cmsBranchVo.branchName}</td>
-                        <td>{obj.cmsDepartmentVo.name}</td>
-                        <td>{obj.sex}</td>
-                        <td>{obj.staffType}</td>
-                        <td>{obj.status}</td>
-                  </tr>
-        
-                  
-                    // <td>
-                    //     {
-                    //         <button className="btn btn-primary" onClick={e => this.showDetail(e, true, obj, "Edit Holiday")}>Edit</button>
-                    //     }
-                    // </td>
-                  
-                );
-              }
-        
-    }
-    return retVal;
-  }
+  // createRows(objAry: any) {
+  //   const {branchId, departmentId} = this.state;
+  //   console.log("createRows() - Staff list on staff page:  ", objAry);
+  //   if(objAry === undefined || objAry === null) {
+  //       return;
+  //   }
+  //   const aryLength = objAry.length;
+  //   const retVal = [];
+  //   for (let i = 0; i < aryLength; i++) {
+  //       const obj = objAry[i];
+  //       if(parseInt(obj.branchId,10) === parseInt(branchId,10) &&
+  //             parseInt(obj.departmentId,10) === parseInt(departmentId,10)){
+  //               retVal.push(
+  //                 <tr key="teacher.id">
+  //                       <td> <input type="checkbox" id={'chk'+obj.id} onClick={(e: any) => this.onClickCheckbox(i, e)}/> </td>
+  //                       <td>{obj.teacherName}</td>
+  //                       <td>{obj.employeeId}</td>
+  //                       <td>{obj.designation}</td>
+  //                       <td>{obj.cmsBranchVo.branchName}</td>
+  //                       <td>{obj.cmsDepartmentVo.name}</td>
+  //                       <td>{obj.sex}</td>
+  //                       <td>{obj.staffType}</td>
+  //                       <td>{obj.status}</td>
+  //                 </tr>             
+  //                   // <td>
+  //                   //     {
+  //                   //         <button className="btn btn-primary" onClick={e => this.showDetail(e, true, obj, "Edit Holiday")}>Edit</button>
+  //                   //     }
+  //                   // </td>
+  //               );
+  //             }
+  //   }
+  //   return retVal;
+  // }
 
   searchStaff(e: any) {
     const { name, value } = e.target;
@@ -633,9 +682,7 @@ class Staff extends React.Component<StaffProps, any> {
           if (chkBox !== null && chkBox !== undefined && chkBox.checked) {
             staffToExport.push(tempObj);
           }
-        }
-        
-        
+        }     
       // }
     }
     if (staffToExport.length > 0) {
@@ -705,6 +752,27 @@ class Staff extends React.Component<StaffProps, any> {
     return result;
   }
 
+  async componentDidMount() {
+    await this.registerSocket();
+    await this.getStaff();
+  }
+getStaff = async () => {
+    const { data } = await this.props.client.query({
+      query: GET_STAFF_LIST,
+      fetchPolicy: 'no-cache',
+    }).then((res: any) => {
+      const data=res.data;
+      console.log("Staff data :::", data.getStaffList);
+
+      this.setState({
+
+      });
+
+      console.log(" state variable Staff data :::", this.state.staffList);
+
+    });
+  }
+
   render() {
     const {isModalOpen, staffList, activeTab, staffObj, errorMessage, successMessage} = this.state;
     return (
@@ -772,8 +840,11 @@ class Staff extends React.Component<StaffProps, any> {
               </select>
             </div>
           </div>
-          <div className="">
-            <Nav tabs className="" id="rmfloat">
+          <React.Fragment>
+      <StaffWorkFlow />
+    </React.Fragment>
+          {/* <div className=""> */}
+            {/* <Nav tabs className="" id="rmfloat">
               <NavItem className="cursor-pointer">
                 <NavLink
                   className={`${activeTab === 0 ? 'active' : ''}`}
@@ -804,9 +875,9 @@ class Staff extends React.Component<StaffProps, any> {
                   Emergency Contact
                 </NavLink>
               </NavItem>
-            </Nav>
-            <TabContent activeTab={activeTab} className="ltab-contianer p-0">
-              <TabPane tabId={0}>
+            </Nav> */}
+            {/* <TabContent activeTab={activeTab} className="ltab-contianer p-0"> */}
+              {/* <TabPane tabId={0}>
                 <div>
                   <div className="form-grid">
                     <div>
@@ -857,12 +928,12 @@ class Staff extends React.Component<StaffProps, any> {
                     <div>
                       <label htmlFor="">Mother Last Name</label>
                       <input className="gf-form-input fwidth" type="text" onChange={this.onChange} value={staffObj.motherLastName} name="motherLastName" id="motherLastName" maxLength={255} />
-                    </div>
+                    </div> */}
                     {/* <div>
                       <label htmlFor="">Adhar No</label>
                       <input className="gf-form-input fwidth" type="text" name="adhar" maxLength={255} />
                     </div> */}
-                    <div>
+                    {/* <div>
                       <label htmlFor="">Date Of Birth<span style={{ color: 'red' }}> * </span></label>
                       <input className="gf-form-input fwidth" type="date" onChange={this.onChange} value={staffObj.dateOfBirth} name="dateOfBirth" id="dateOfBirth" maxLength={10}/>
                     </div>
@@ -895,7 +966,7 @@ class Staff extends React.Component<StaffProps, any> {
                     <div>
                       <label htmlFor="">Sub Caste</label>
                       <input className="gf-form-input fwidth" type="text" onChange={this.onChange} value={staffObj.subCaste} name="subCaste" id="subCaste" maxLength={255} />
-                    </div>
+                    </div> */}
                     {/* <div>
                       <label htmlFor="">Age*</label>
                       <input
@@ -906,7 +977,7 @@ class Staff extends React.Component<StaffProps, any> {
                         maxLength={255}
                       />
                     </div> */}
-                    <div>
+                    {/* <div>
                       <label htmlFor="">Gender<span style={{ color: 'red' }}> * </span></label>
                       <select className="gf-form-input fwidth" onChange={this.onChange} value={staffObj.sex} name="sex" id="sex">
                         <option value="">Select Gender</option>
@@ -929,21 +1000,21 @@ class Staff extends React.Component<StaffProps, any> {
                         <option value="">Select Blood Group</option>
                       </select>
                     </div> */}
-                    <div></div>
+                    {/* <div></div>
                     <div>
                       <button type="button" onClick={this.validatePersonalInfo} className="btn btn-primary border-bottom"> Next </button>
                     </div>
                   </div>
                 </div>
-              </TabPane>
+              </TabPane>  */}
 
-              <TabPane tabId={1}>
-                <div>
+              {/* <TabPane tabId={1}> */}
+                {/* <div>
                   <div className="form-grid">
                     <div>
                       <label htmlFor="">Address<span style={{ color: 'red' }}> * </span></label>
                       <input className="gf-form-input fwidth" type="text" onChange={this.onChange} value={staffObj.address} name="address" id="address" maxLength={255} />
-                    </div>
+                    </div> */}
                     {/* <div>
                       <label htmlFor="">Address Line 2</label>
                       <input className="gf-form-input fwidth" name="adr2" maxLength={255} />
@@ -952,7 +1023,7 @@ class Staff extends React.Component<StaffProps, any> {
                       <label htmlFor="">Address Line 3</label>
                       <input className="gf-form-input fwidth" type="text"name="adr3" maxLength={255} />
                     </div> */}
-                    <div>
+                    {/* <div>
                       <label htmlFor="">City</label>
                       <input className="gf-form-input fwidth" type="text" onChange={this.onChange} value={staffObj.town} name="town" id="town"  maxLength={255} />
                     </div>
@@ -989,10 +1060,10 @@ class Staff extends React.Component<StaffProps, any> {
                       <button type="button" onClick={this.validateContactDetails} className="btn btn-primary border-bottom"> Next </button>
                     </div>
                   </div>
-                </div>
-              </TabPane>
-              <TabPane tabId={2}>
-                <div>
+                </div> */}
+              {/* </TabPane> */}
+              {/* <TabPane tabId={2}> */}
+                {/* <div>
                   <div className="staff-p">
                     <label htmlFor="">Relation with Staff<span style={{ color: 'red' }}> * </span></label>
                     <select className="gf-form-input fwidth" onChange={this.onChange} value={staffObj.relationWithStaff} name="relationWithStaff" id="relationWithStaff">
@@ -1028,13 +1099,13 @@ class Staff extends React.Component<StaffProps, any> {
                       <button type="button" name="btnSaveStaff" id="btnSaveStaff" onClick={this.save} className="btn btn-primary border-bottom"> Save </button>
                     </div>
                   </div>
-                </div>
-              </TabPane>
+                </div> */}
+              {/* </TabPane>
             </TabContent>
           </div>
-        </div>
-        <div id="lidiv" className="p-1 page-body legal-entities-main-container">
-          <div className="staff-management">
+        </div> */}
+        {/* <div id="lidiv" className="p-1 page-body legal-entities-main-container">
+          <div className="staff-management"> */}
             {/* <div>
               <label htmlFor="">Gender</label>
               <select className="gf-form-input">
@@ -1052,16 +1123,16 @@ class Staff extends React.Component<StaffProps, any> {
                 <option value="NONTEACHING">NONTEACHING</option>
               </select>
             </div> */}
-            <div className="margin-bott m-r-1">
+            {/* <div className="margin-bott m-r-1">
               <label htmlFor="">Search</label>
               <input type="text" className="input" placeholder="search" name="searchStaff" onChange={this.searchStaff} value={this.state.searchName} />
-            </div>
-            <a onClick={(e: any) => this.exportStaff(staffList) } className="btn btn-primary" style={{marginTop: '-5px'}} >
+            </div> */}
+            {/* <a onClick={(e: any) => this.exportStaff(staffList) } className="btn btn-primary" style={{marginTop: '-5px'}} >
               Export To CSV
-            </a>
-          </div>
+            </a> */}
+          {/* </div> */}
 
-          <table className="staff-management-table">
+          {/* <table className="staff-management-table">
             <thead>
               <th>
                 <input type="checkbox" value="checkedAll" onClick={(e: any) => this.checkAll(e)} key="teacher.id" id="chkAll" name="chkAll"/>
@@ -1079,14 +1150,16 @@ class Staff extends React.Component<StaffProps, any> {
             {
               staffList !== null && staffList !== undefined && staffList.length > 0 ?
                 this.createRows(staffList)
-              :null
-              
-            }
-            
-              
+              :null 
+            }                
             </tbody>
-          </table>
+          </table> */}
+    {/* <Table valueFromData={{ columns: this.state.columns, data: staffList }} perPageLimit={6} visiblecheckboxStatus={true} tableClasses={{ table: "alert-data-tabel", tableParent: "alerts-data-tabel", parentClass: "all-alert-data-table" }} searchKey="name" showingLine="Showing %start% to %end% of %total%" /> */}
+
         </div>
+        <div>
+                      <button type="button" name="btnSaveStaff" id="btnSaveStaff" onClick={this.save} className="btn btn-primary border-bottom"> Save </button>
+                    </div>
       </div>
     );
   }
