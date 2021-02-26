@@ -1,7 +1,6 @@
-// import React, { Component } from 'react';
 import * as React from 'react';
 export class CustomRadioCheckbox extends React.Component<any, any> {
-    constructor(props:any) {
+    constructor(props: any) {
         super(props);
     }
 
@@ -25,10 +24,10 @@ export class CustomRadioCheckbox extends React.Component<any, any> {
         return retData;
     }
     render() {
-        const { containerClass, labelClass, label, isValid, message, options, notice } = this.props;
+        const { containerClass, labelClass, label, isValid, message, options, notice, isRequired } = this.props;
         return (
             <div className={containerClass}>
-                <label className={labelClass}>{label}</label>
+                <label className={labelClass}>{label}{isRequired == true && <span className="required"> * </span>}</label>
                 {this.displayOptions(options)}
                 {
                     !isValid &&

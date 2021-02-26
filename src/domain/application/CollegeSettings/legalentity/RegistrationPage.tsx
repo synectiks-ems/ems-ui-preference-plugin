@@ -25,6 +25,8 @@ export interface RegistrationProps extends React.HTMLAttributes<HTMLElement>{
   legalEntityList?: any;
 }
 class RegistrationPage<T = {[data: string]: any}> extends React.Component<RegistrationProps, any> {
+  legalEntityWorkflowRef: any;
+  legalEntityModel : any;
   constructor(props: RegistrationProps) {
     super(props);
     this.state = {
@@ -78,6 +80,7 @@ class RegistrationPage<T = {[data: string]: any}> extends React.Component<Regist
     this.filterCityList = this.filterCityList.bind(this);
     this.filterBranchList = this.filterBranchList.bind(this);
     this.filterLegalEntity = this.filterLegalEntity.bind(this);
+    this.legalEntityWorkflowRef = React.createRef();
   }
  
   componentWillUpdate(newProps: any, newState: any){
@@ -485,14 +488,17 @@ class RegistrationPage<T = {[data: string]: any}> extends React.Component<Regist
         // fetchPolicy: 'cache-and-network'
     }).then((resp: any) => {
         console.log("Success in saveLegalEntity Mutation. Exit code : ",resp.data.saveLegalEntity.cmsLegalEntityVo.exitCode);
-        exitCode = resp.data.saveLegalEntity.cmsLegalEntityVo.exitCode;
+        this.legalEntityWorkflowRef.current.onSuccessfulCall();
+        //   exitCode = resp.data.saveLegalEntity.cmsLegalEntityVo.exitCode;
         
-        this.setState({
-          legalEntityList: resp.data.saveLegalEntity.cmsLegalEntityVo.dataList
-      });
+      //   this.setState({
+      //     legalEntityList: resp.data.saveLegalEntity.cmsLegalEntityVo.dataList
+      // });
     }).catch((error: any) => {
         exitCode = 1;
+        this.legalEntityWorkflowRef.current.onSuccessfulCall();
         console.log('Error in saveLegalEntity : ', error);
+        this.legalEntityWorkflowRef.current.onSuccessfulCall();
     });
     btn && btn.removeAttribute("disabled");
     
@@ -635,6 +641,26 @@ class RegistrationPage<T = {[data: string]: any}> extends React.Component<Regist
     
   }
 
+  
+  async setDropDown(data: any, value: any, key: any, label: any) {
+    let retData = [];
+  if (data && data.length > 0) {
+    for (let i = 0; i < data.length; i++) {
+      let item = data[i];
+      retData.push(
+        <option value={item[value]} key={item[key]}>{item[label]}</option>
+      );
+    }
+  }
+  return retData;
+}
+
+  onClickFinish = async (jsonData: any) => {
+    const inputObj = this.getInput(jsonData);
+    this.doSave(inputObj, "test");
+    await this.setDropDown(this.state.signatoryList, "formSigntory", "id", "name");
+  };
+
   render() {
     const {activeTab, stateList, cityList, branchList, signatoryList, regObj, ptSignatoryDesignation, esiSignatoryDesignation,
           pfSignatoryDesignation, legalEntityList} = this.state;
@@ -665,7 +691,7 @@ class RegistrationPage<T = {[data: string]: any}> extends React.Component<Regist
           </div>
         </div>
         <React.Fragment>
-      <LegalEntityWorkFlow />
+    <LegalEntityWorkFlow ref={this.legalEntityWorkflowRef} sendData={this.onClickFinish} />
     </React.Fragment>
         {/* <Nav tabs className="" id="rmfloat">
           <NavItem className="cursor-pointer">
