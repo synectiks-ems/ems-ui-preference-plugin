@@ -1,4 +1,4 @@
-const IP = '100.81.5.26';
+const IP = 'localhost';
 // const IP = '100.81.5.25';
 
 const secSrvUrl = 'http://' + IP + ':8094';

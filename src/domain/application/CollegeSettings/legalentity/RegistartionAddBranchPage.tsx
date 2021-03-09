@@ -133,33 +133,33 @@ class RegistrationPage<T = {[data: string]: any}> extends React.Component<Regist
         errorMessage: "",
         successMessage: "",
     });
-    // if(name === "stateId"){
-    //     regObj.stateId = value;
-    //     this.setState({
-    //       regObj: regObj
-    //     });
-    //     this.filterCityList(value);
-    //     this.filterBranchList();
-    //     this.resetCollegeNameAndAddress();
-    // }
-    // if(name === "cityId"){
-    //   regObj.cityId = value;
-    //   this.setState({
-    //     regObj: regObj
-    //   });
-    //   this.filterBranchList();
-    //   this.resetCollegeNameAndAddress();
-    // }
-    // if(name === "branchId"){
-    //   let o =  this.filterLegalEntity(value);
-    //   console.log("LEGAL ENTITY OBJECT : ",o);
-    //   commonFunctions.restoreTextBoxBorderToNormal("legalNameOfCollege");
-    //   commonFunctions.restoreTextBoxBorderToNormal("registeredOfficeAddress");
-    //   this.setState({
-    //     regObj: o
-    //   });
+    if(name === "stateId"){
+        regObj.stateId = value;
+        this.setState({
+          regObj: regObj
+        });
+        this.filterCityList(value);
+        this.filterBranchList();
+        this.resetCollegeNameAndAddress();
+    }
+    if(name === "cityId"){
+      regObj.cityId = value;
+      this.setState({
+        regObj: regObj
+      });
+      this.filterBranchList();
+      this.resetCollegeNameAndAddress();
+    }
+    if(name === "branchId"){
+      let o =  this.filterLegalEntity(value);
+      console.log("LEGAL ENTITY OBJECT : ",o);
+      commonFunctions.restoreTextBoxBorderToNormal("legalNameOfCollege");
+      commonFunctions.restoreTextBoxBorderToNormal("registeredOfficeAddress");
+      this.setState({
+        regObj: o
+      });
       
-    // }
+    }
 
     if(name === "ptSignatory"){
       let desig = this.applyDesignation(value);
@@ -253,18 +253,18 @@ class RegistrationPage<T = {[data: string]: any}> extends React.Component<Regist
     return designation;
   }
 
-  // applyBranch(branchId: any){
-  //   const {branchList} = this.state;
-  //   let obj = {};
-  //   for (let i = 0; i < branchList.length; i++) {
-  //     const k = branchList[i];
-  //     if(parseInt(branchId, 10) === parseInt(k.id, 10)){
-  //       obj = k;
-  //       break;
-  //     }
-  //   }
-  //   return obj;
-  // }
+  applyBranch(branchId: any){
+    const {branchList} = this.state;
+    let obj = {};
+    for (let i = 0; i < branchList.length; i++) {
+      const k = branchList[i];
+      if(parseInt(branchId, 10) === parseInt(k.id, 10)){
+        obj = k;
+        break;
+      }
+    }
+    return obj;
+  }
 
   filterCityList(stateId: any){
     if(stateId === undefined || stateId === null || stateId === ""){
@@ -547,7 +547,7 @@ class RegistrationPage<T = {[data: string]: any}> extends React.Component<Regist
         ptNumber: regObj.ptNumber,
         strPtRegistrationDate: (regObj.ptRegistrationDate !== null || regObj.ptRegistrationDate !== undefined || regObj.ptRegistrationDate !== "") ? moment(regObj.ptRegistrationDate).format("DD-MM-YYYY") : "", 		
         ptSignatory: regObj.ptSignatory,
-        // branchId: regObj.branchId
+        branchId: regObj.branchId
     };
     return legalEntityInput;
   }
@@ -575,16 +575,16 @@ class RegistrationPage<T = {[data: string]: any}> extends React.Component<Regist
               ptNumber: "",
               ptRegistrationDate: "",
               ptSignatory: "",
-              // branchId: branchId,
-              // stateId: "",
-              // cityId: ""
+              branchId: branchId,
+              stateId: "",
+              cityId: ""
     };
-    // if(branchId === null || branchId === undefined || branchId === ""){
-    //   return obj;
-    // }
+    if(branchId === null || branchId === undefined || branchId === ""){
+      return obj;
+    }
     for(let i=0; i<legalEntityList.length; i++){
       const k = legalEntityList[i];
-      // if(parseInt(branchId, 10) === parseInt(k.cmsBranchVo.id, 10)){
+      if(parseInt(branchId, 10) === parseInt(k.cmsBranchVo.id, 10)){
         obj.id= k.id; 
         obj.legalNameOfCollege = k.legalNameOfCollege;
         obj.registeredOfficeAddress = k.registeredOfficeAddress;
@@ -605,22 +605,22 @@ class RegistrationPage<T = {[data: string]: any}> extends React.Component<Regist
         obj.ptNumber = k.ptNumber;
         obj.ptRegistrationDate = moment(k.strPtRegistrationDate).format("YYYY-MM-DD");
         obj.ptSignatory = k.ptSignatory;
-        // obj.branchId = k.branchId;
-        // obj.stateId = k.stateId;
-        // obj.cityId = k.cityId;
+        obj.branchId = k.branchId;
+        obj.stateId = k.stateId;
+        obj.cityId = k.cityId;
         break;
-      // }
+      }
     }
-    // if(obj.legalNameOfCollege === null || obj.legalNameOfCollege === undefined || obj.legalNameOfCollege === "" ){
-    //   for (let i = 0; i < branchList.length; i++) {
-    //     const k = branchList[i];
-    //     if(parseInt(branchId, 10) === parseInt(k.id, 10)) {
-    //       obj.legalNameOfCollege = k.branchName;
-    //       obj.registeredOfficeAddress = k.address;
-    //       break;
-    //     }
-    //   }
-    // }
+    if(obj.legalNameOfCollege === null || obj.legalNameOfCollege === undefined || obj.legalNameOfCollege === "" ){
+      for (let i = 0; i < branchList.length; i++) {
+        const k = branchList[i];
+        if(parseInt(branchId, 10) === parseInt(k.id, 10)) {
+          obj.legalNameOfCollege = k.branchName;
+          obj.registeredOfficeAddress = k.address;
+          break;
+        }
+      }
+    }
     if(obj.pfSignatory !== ""){
       let desig = this.applyDesignation(obj.pfSignatory);
       this.setState({
@@ -671,7 +671,7 @@ class RegistrationPage<T = {[data: string]: any}> extends React.Component<Regist
         <div className="clearfix" />
         <div className="dflex m-b-1 algn-item-center">
           <h5 className="form-h5 m-r-1 fwidth">Registration & Tax information</h5>
-          {/* <div className="dflex">
+          <div className="dflex">
             <select className="gf-form-input m-r-1" name="stateId" id="stateId"  onChange={this.onChange} value={regObj.stateId}>
               <option value="">Select State</option>
               {
@@ -690,7 +690,7 @@ class RegistrationPage<T = {[data: string]: any}> extends React.Component<Regist
                   commonFunctions.createSelectbox(branchList, "id", "id", "branchName")
               }
             </select>
-          </div> */}
+          </div>
         </div>
         <React.StrictMode> 
             <LegalEntityWorkFlow ref={this.legalEntityWorkflowRef} sendData={this.onClickFinish} />

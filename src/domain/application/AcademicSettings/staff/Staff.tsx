@@ -29,6 +29,7 @@ const SUCCESS_MESSAGE_STAFF_ADDED = "New employee saved successfully";
 const SUCCESS_MESSAGE_STAFF_UPDATED = "Employee updated successfully";
 
 class Staff extends React.Component<StaffProps, any> {
+  staffWorkflowRef: any;
   DEFAULT_STAFF_IMAGE = "/public/img/user_profile.png";
   constructor(props: StaffProps) {
     super(props);
@@ -167,6 +168,7 @@ class Staff extends React.Component<StaffProps, any> {
     this.exportStaff = this.exportStaff.bind(this);
     this.convertArrayOfObjectsToCSV = this.convertArrayOfObjectsToCSV.bind(this);
     this.download = this.download.bind(this);
+    this.staffWorkflowRef = React.createRef();
   }
 
   // async componentDidMount(){
@@ -533,15 +535,19 @@ class Staff extends React.Component<StaffProps, any> {
             input: inputObj
         },
     }).then((resp: any) => {
-        console.log("Success in saveStaff Mutation. Exit code : ",resp.data.saveTeacher.cmsTeacherVo.exitCode);
-        exitCode = resp.data.saveTeacher.cmsTeacherVo.exitCode;
-        
-        this.setState({
-          staffList: resp.data.saveTeacher.cmsTeacherVo.dataList
-        });
+        console.log("Success in saveStaff Mutation. Exit code : ",
+        // resp.data.saveTeacher.cmsTeacherVo.exitCode
+        );
+        // exitCode = resp.data.saveTeacher.cmsTeacherVo.exitCode;
+        this.staffWorkflowRef.current.onSuccessfulCall();
+        // this.setState({
+        //   staffList: resp.data.saveTeacher.cmsTeacherVo.dataList
+        // });
     }).catch((error: any) => {
+      this.staffWorkflowRef.current.onSuccessfulCall();
         exitCode = 1;
         console.log('Error in saveTeacher : ', error);
+        this.staffWorkflowRef.current.onSuccessfulCall();
     });
     btn && btn.removeAttribute("disabled");
     
@@ -565,16 +571,16 @@ class Staff extends React.Component<StaffProps, any> {
   save = (e: any) => {
     const { id } = e.nativeEvent.target;
     const {staffObj} = this.state;
-    if(!this.validatePersonalInfo()){
-      this.toggleTab(0);
-      return;
-    }else if(!this.validateContactDetails()){
-      this.toggleTab(1);
-      return;
-    }else if(!this.validateEmergencyDetails()){
-      this.toggleTab(2);
-      return;
-    }
+    // if(!this.validatePersonalInfo()){
+    //   this.toggleTab(0);
+    //   return;
+    // }else if(!this.validateContactDetails()){
+    //   this.toggleTab(1);
+    //   return;
+    // }else if(!this.validateEmergencyDetails()){
+    //   this.toggleTab(2);
+    //   return;
+    // }
     const inputObj = this.getInput(staffObj);
     this.doSave(inputObj, id);
   }
@@ -772,6 +778,10 @@ getStaff = async () => {
 
     });
   }
+  onClickFinish = (jsonData: any) => {
+    const inputObj = this.getInput(jsonData);
+    this.doSave(inputObj, "test");
+  };
 
   render() {
     const {isModalOpen, staffList, activeTab, staffObj, errorMessage, successMessage} = this.state;
@@ -840,16 +850,16 @@ getStaff = async () => {
               </select>
             </div>
           </div>
-          <React.Fragment>
-      <StaffWorkFlow />
-    </React.Fragment>
+          <React.StrictMode> 
+            <StaffWorkFlow ref={this.staffWorkflowRef} sendData={this.onClickFinish}  />
+          </React.StrictMode>
           {/* <div className=""> */}
             {/* <Nav tabs className="" id="rmfloat">
               <NavItem className="cursor-pointer">
                 <NavLink
                   className={`${activeTab === 0 ? 'active' : ''}`}
                   onClick={() => {
-                    this.toggleTab(0);
+                                                                                                                                                            this.toggleTab(0);
                   }}
                 >
                   Personal Details

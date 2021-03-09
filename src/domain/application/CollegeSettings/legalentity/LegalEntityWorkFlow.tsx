@@ -1,11 +1,17 @@
 import * as React from 'react';
-import { Workflow, componentType } from '../../Workflow';
+import { Workflow } from '../../Workflow';
+import { GET_AUTHORIZED_SIGNATORY_LIST } from '../../_queries/getAuthorizedSignatoryList';
+import { services } from './services';
 
 class LegalEntityWorkFlow extends React.Component<any, any> {
   workflowRef: any = null;
   constructor(props: any) {
     super(props);
     this.state = {
+      entityObj:{
+        formSignatory:"",
+      },
+      signatoryList:this.props.signatoryList,
       data: [
         {
           "title": "College Info", "tabTitle": "College Info", "subHeading": "College Info",
@@ -26,7 +32,17 @@ class LegalEntityWorkFlow extends React.Component<any, any> {
             },
             { "id": "tan", "name": "tan", "title": "TAN", "isRequired": true, "placeHolder": "TASN12345H", "errorMessage": "This field is required.", "notice": "enter TAN details", "validations": [], "type": "text" },
             { "id": "tanCircleNumber", "name": "tanCircleNumber", "title": "TAN CIRCLE NUMBER", "isRequired": true, "placeHolder": "12345678", "errorMessage": "This field is required.", "notice": "enter TAN CIRCLE NUMBER", "validations": [], "type": "text" },
-            { "id": "formSignatory", "name": "formSignatory", "title": "FORM 16 SIGNATORY", "isRequired": false, "options": [], "errorMessage": "required", "notice": "Select Form Signatory", "type": "select" },
+            { 
+              "id": "formSignatory",
+              "name": "formSignatory",
+               "title": "FORM 16 SIGNATORY",
+               "isRequired": false,
+               "options": [
+               ],
+                "errorMessage": "required",
+                "notice": "Select Form Signatory",
+                "type": "select" 
+              },
             { "id": "citTdsLocation", "name": "citTdsLocation", "title": "CIT(TDS) LOCATION", "isRequired": true, "placeHolder": "CITY NAME", "errorMessage": "This field is required.", "notice": "enter location", "validations": [], "type": "text" },
           ]
         },
@@ -62,37 +78,104 @@ class LegalEntityWorkFlow extends React.Component<any, any> {
   }
 
   onClickNext = (index: any, tabData: any) => {
+    console.log(tabData);
     setTimeout(() => {
       this.workflowRef.current.showNextTab();
     }, 3000);
   };
 
-  componentDidMount() {
-    //make api call here
-    setTimeout(() => {
-      this.setFormSignatory();
-    }, 1000);
+  async componentDidMount() {
+    // await this.getSignatoryList();
+    services.getAuthorizedSignatoryList().then(
+      (response: any) => {
+        this.setState({
+          signatoryList: response
+        });
+        let data = [];
+        for(let i = 0; i < response.length; i++){
+          const formSignatory = response[i];
+          data.push({
+            label: formSignatory.name,
+            value: formSignatory.id
+          });
+        }
+      this.updateForm(1, 3, "options", data);
+      this.updateForm(2,2,"options",data);
+      this.updateForm(3,2,"options",data);
+      this.updateForm(4,2,"options",data);
+      }
+    );
   }
 
+
+  // async getSignatoryList(){
+  //   const { data } = await this.props.client.query({
+  //       query: GET_AUTHORIZED_SIGNATORY_LIST,
+  //        fetchPolicy: 'no-cache'
+  //   })
+  //   this.setState({
+  //       signatoryList: data  
+  //   });
+  //   // this.updateForm(1, 3, "options", data);  
+  // }
+
+  // createBranches(branches: any) {
+  //   let branchesOptions = [
+  //     <option key={0} value="">
+  //       Select Branch
+  //     </option>,
+  //   ];
+  //   for (let i = 0; i < branches.length; i++) {
+  //     branchesOptions.push(
+  //       <option key={branches[i].id} value={branches[i].id}>
+  //         {branches[i].branchName}
+  //       </option>
+  //     );
+  //   }
+  //   return branchesOptions;
+  // }
   setFormSignatory = () => {
-    let options = [{
-      "value": "abc",
-      "label": "ABC"
-    },
-    {
-      "value": "def",
-      "label": "DEF"
-    },
-    {
-      "value": "xyz",
-      "label": "XYZ"
-    }];
-    const { data } = this.state;
-    data[1].content[3].options = options;
-    this.setState({
-      data,
-    })
+    const { signatoryList } = this.state;
+    const data: any = [];
+    for ( let i = 0; i < signatoryList.length; i++){
+      data.push({
+        label:signatoryList[i].name,
+        value:signatoryList[i].id,
+      });
+   }
+   this.updateForm(1, 3, "options", data);
+   this.updateForm(2,2,"options",data);
+   this.updateForm(3,2,"options",data);
+   this.updateForm(4,2,"options",data);
   }
+   
+  updateForm = (tabIndex: any, controlIndex: any, key: any, value: any) => {
+    const { data } = this.state;
+    const tab = data[tabIndex];
+    const control = tab.content[controlIndex];
+    control[key] = value;
+    this.setState({
+        data
+    });
+}
+//   const {signatoryList,data} = this.state;
+//   let formSignatory = "";
+//   for (let i = 0; i < signatoryList.length; i++) {
+//     const k = signatoryList[i];
+//     if(parseInt(asId, 10) === parseInt(k.id, 10)){
+//       formSignatory = k.formSignatory;
+//       break;
+//     }
+//     data[1].content[3].signatoryList=signatoryList;
+//   }
+// //  this.setState({
+// //    data: signatoryList
+// //  })
+//   return formSignatory;
+  // }
+
+  // createSignatory(formSignatory: any)
+
 
 
   onFormSubmitted = (step: any, response: any) => {
@@ -101,6 +184,17 @@ class LegalEntityWorkFlow extends React.Component<any, any> {
 
   onChangeComponent = (e: any, type: any, tabIndex: any, componentIndex: any) => {
     console.log(e, type, tabIndex, componentIndex);
+    // const { data } = this.state;
+    // const { value } = e.target;
+    // let tabContent = data[tabIndex];
+    // if(tabContent.content) {
+    //   const component = tabContent.content[componentIndex];
+      // if(component) {
+      //   if(component.id === "id") {
+      //     this.get
+      //   }
+      // }
+    // }
   }
   onChangeTab = (activeTab: any, data: any) => {
     if (activeTab === this.state.data.length - 1) {
@@ -119,10 +213,10 @@ class LegalEntityWorkFlow extends React.Component<any, any> {
     const { data } = this.state;
     return (
       <div>
-        <Workflow formData={data} onFormSubmitted={this.onFormSubmitted} ref={this.workflowRef} onChangeComponent={this.onChangeComponent} onChangeTab={this.onChangeTab} />
+        <Workflow formData={data} onFormSubmitted={this.onFormSubmitted} ref={this.workflowRef} 
+        onChangeComponent={this.onChangeComponent} onChangeTab={this.onChangeTab} />
       </div>
     );
   }
 }
-
 export default LegalEntityWorkFlow;
